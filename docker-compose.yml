@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: postgrespassword
       POSTGRES_DB: teachers_crm
     ports:
-      - "5433:5432" # Host port 5433 -> Container port 5432 (port 5432 is in use on host)
+      - "5435:5432" # Host port 5435 -> Container port 5432 (ports 5432 and 5433 are in use on host)
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

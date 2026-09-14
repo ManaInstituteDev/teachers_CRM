@@ -7,33 +7,202 @@ datasource db {
   provider = "postgresql"
 }
 
-model Teacher {
+enum UserRole {
+  ADMIN
+  EVALUATOR
+}
+
+model User {
   id        String   @id @default(cuid())
-  firstName String
-  lastName  String
-  email     String   @unique
+  fullName  String
+  username  String   @unique
+  password  String   // ذخیره رمز عبور (یا هش)
   phone     String?
-  subject   String
-  status    String   @default("ACTIVE")
-  salary    Float?
-  bio       String?
+  role      UserRole @default(EVALUATOR)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  courses Course[]
+  createdSchools     School[]            @relation("EvaluatorSchools")
+  teacherEvaluations TeacherEvaluation[] @relation("EvaluatorEvaluations")
+
+  @@map("users")
+}
+
+enum SchoolOwnership {
+  GOVERNMENTAL        // دولتی
+  NON_GOVERNMENTAL    // غیردولتی
+  BOARD_OF_TRUSTEES   // هیئت‌امنایی
+  NEMOONE_DOLATI      // نمونه دولتی
+  SAMPAD              // استعدادهای درخشان
+  SHAHED              // شاهد
+  ORGANIZATION_TIED   // وابسته به نهاد یا سازمان خاص
+  VOCATIONAL          // هنرستان
+  HYBRID_SPECIAL      // مدرسه خاص یا ترکیبی
+  OTHER               // سایر
+}
+
+enum AdmissionType {
+  PUBLIC              // ثبت‌نام عمومی
+  EXAM_BASED          // پذیرش بر اساس آزمون
+  INTERVIEW_RESUME    // پذیرش بر اساس مصاحبه یا بررسی سوابق
+  REGIONAL            // پذیرش منطقه‌ای
+  SELECTIVE_LIMITED   // پذیرش محدود یا گزینشی
+  HYBRID              // ترکیبی
+}
+
+enum SchoolDominantApproach {
+  EDUCATIONAL_GRADE_ORIENTED // آموزشی و نمره‌محور
+  EDUCATIONAL_CULTURAL       // تربیتی و فرهنگی
+  SKILL_ORIENTED             // مهارت‌محور
+  RESEARCH_ORIENTED          // پژوهش‌محور
+  PROBLEM_ORIENTED           // مسئله‌محور
+  RELIGIOUS_VALUE            // دینی و ارزشی
+  ARTISTIC_CREATIVE          // هنری و خلاق
+  ENTREPRENEURSHIP           // کارآفرینی
+  HYBRID                     // ترکیبی
+}
+
+enum HumanitiesAttitude {
+  POSITIVE_SERIOUS    // مثبت و جدی
+  POSITIVE_LOW_INFO   // مثبت اما کم‌اطلاع
+  NEUTRAL             // خنثی
+  WEAK_STEREOTYPICAL  // ضعیف یا کلیشه‌ای
+}
+
+model School {
+  id              String                 @id @default(cuid())
+  name            String
+  code            String?                @unique // کد مدرسه
+  province        String                 @default("تهران") // استان
+  city            String                 @default("تهران") // شهرستان
+  district        String                 // منطقه آموزش و پرورش
+  address         String?
+  ownershipType   SchoolOwnership        @default(GOVERNMENTAL)
+  ownershipOther  String?
+  admissionType   AdmissionType          @default(PUBLIC)
+
+  // رویکرد تربیتی و فرهنگی مدرسه
+  dominantApproach SchoolDominantApproach @default(EDUCATIONAL_CULTURAL)
+  approachEvidence String?                @db.Text // شواهد عملی رویکرد
+
+  // ظرفیت در حوزه علوم انسانی
+  humanitiesAttitude HumanitiesAttitude?
+  
+  // سوابق مدرسه در زمینه‌های ۱۰‌گانه (آرایه متنی)
+  humanitiesActivities String[]          @default([])
+
+  // زمینه‌های ظرفیت دانش‌آموزان
+  studentCapacities    String[]          @default([])
+
+  // میزان آمادگی مدرسه برای اجرای برنامه‌های علوم انسانی
+  humanitiesReadinessLevel String?       @db.Text
+
+  // ارزیاب ثبت‌کننده مدرسه
+  createdById     String?
+  createdBy       User?                  @relation("EvaluatorSchools", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  teachers        Teacher[]
+
+  @@map("schools")
+}
+
+enum CollaborationStatus {
+  DEVELOPMENTAL_RELATION // مستعد ارتباط رشدی
+  OCCASIONAL_RELATION    // ارتباط موردی
+  UNSUITABLE             // نامناسب همکاری
+  PENDING_EVALUATION     // در انتظار ارزیابی
+}
+
+model Teacher {
+  id                  String              @id @default(cuid())
+  firstName           String
+  lastName            String
+  phone               String?             @unique
+  nationalCode        String?             @unique
+  teachingYears       Int                 @default(0) // سابقه تدریس
+  subject             String              // رشته تدریس
+  grade               String              // مقطع تدریس
+  schoolId            String?
+  school              School?             @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  schoolNameManual    String?             // در صورتی که نام مدرسه دستی وارد شود
+  schoolTypeManual    String?             // نوع مدرسه دستی
+  collaborationStatus CollaborationStatus @default(PENDING_EVALUATION)
+  bio                 String?             @db.Text
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  evaluations         TeacherEvaluation[]
 
   @@map("teachers")
 }
 
-model Course {
-  id          String   @id @default(cuid())
-  title       String
-  code        String   @unique
-  description String?
-  teacherId   String?
-  teacher     Teacher? @relation(fields: [teacherId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+enum FamiliarityLevel {
+  LOW      // کم
+  MEDIUM   // متوسط
+  HIGH     // زیاد
+}
 
-  @@map("courses")
+model TeacherEvaluation {
+  id                  String              @id @default(cuid())
+  teacherId           String
+  teacher             Teacher             @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  evaluatorId         String
+  evaluator           User                @relation("EvaluatorEvaluations", fields: [evaluatorId], references: [id], onDelete: Restrict)
+
+  evaluationDate      DateTime            @default(now())
+  dialogueDurationMin Int                 @default(30) // مدت گفت‌وگو
+  familiarityLevel    FamiliarityLevel    @default(MEDIUM) // سطح آشنایی ارزیاب با معلم
+
+  // --- محور ۱: رابطه تربیتی و اثرگذاری بر دانش‌آموز (وزن ۱۵٪) ---
+  scoreAxis1_1        Int                 @default(0) // شناخت دانش‌آموزان فراتر از نمره (۰ تا ۳۰)
+  scoreAxis1_2        Int                 @default(0) // وجود رابطه اعتمادآمیز و رجوع واقعی (۰ تا ۲۰)
+  scoreAxis1_3        Int                 @default(0) // احترام به تفاوت‌های فردی و پرهیز از تحقیر (۰ تا ۲۰)
+  scoreAxis1_4        Int                 @default(0) // توان اثرگذاری و انگیزه بدون تحمیل (۰ تا ۳۰)
+  rawAxis1            Int                 @default(0) // جمع خام (۰ تا ۱۰۰)
+  qualitativeAxis1    String?             // برچسب کیفی
+  notesAxis1          String?             @db.Text    // نظر ارزیاب
+
+  // --- محور ۲: توان شناسایی استعداد (وزن ۲۵٪) ---
+  scoreAxis2_1        Int                 @default(0) // تشخیص ظرفیت فراتر از معدل و رتبه (۰ تا ۳۰)
+  scoreAxis2_2        Int                 @default(0) // ارائه شواهد عینی عملکرد (۰ تا ۳۰)
+  scoreAxis2_3        Int                 @default(0) // تفکیک علاقه، استعداد، پشتکار و موفقیت (۰ تا ۲۰)
+  scoreAxis2_4        Int                 @default(0) // تشخیص ظرفیت‌های علوم انسانی (۰ تا ۲۰)
+  rawAxis2            Int                 @default(0) // جمع خام (۰ تا ۱۰۰)
+
+  // --- محور ۳: نگرش و ظرفیت علوم انسانی (وزن ۱۵٪) ---
+  scoreAxis3_1        Int                 @default(0) // باور به اهمیت علوم انسانی (۰ تا ۳۵)
+  scoreAxis3_2        Int                 @default(0) // شناخت اولیه و واقع‌بینانه از حوزه‌ها (۰ تا ۳۵)
+  scoreAxis3_3        Int                 @default(0) // توان پیوند علوم انسانی با مسائل واقعی (۰ تا ۳۰)
+  rawAxis3            Int                 @default(0) // جمع خام (۰ تا ۱۰۰)
+  qualitativeAxis3    String?             // برچسب کیفی
+
+  // --- محور ۴: سرمایه ارتباطی و ظرفیت شبکه‌سازی (وزن ۲۵٪) ---
+  scoreAxis4_1        Int                 @default(0) // دسترسی مؤثر به دانش‌آموزان مستعد و مدارس (۰ تا ۳۵)
+  scoreAxis4_2        Int                 @default(0) // ارتباط حرفه‌ای با معلمان، مدیران و مشاوران (۰ تا ۳۵)
+  scoreAxis4_3        Int                 @default(0) // توان معرفی و همراه کردن افراد در برنامه مشترک (۰ تا ۳۰)
+  rawAxis4            Int                 @default(0) // جمع خام (۰ تا ۱۰۰)
+  qualitativeAxis4    String?             // برچسب کیفی
+
+  // --- محور ۵: تعهد و قابلیت همکاری اجرایی (وزن ۲۰٪) ---
+  scoreAxis5_1        Int                 @default(0) // سابقه اجرای فعالیت از آغاز تا پایان (۰ تا ۳۰)
+  scoreAxis5_2        Int                 @default(0) // داشتن زمان و امکان برای همکاری منظم (۰ تا ۲۰)
+  scoreAxis5_3        Int                 @default(0) // سابقه پیگیری و انجام تعهدات (۰ تا ۲۵)
+  scoreAxis5_4        Int                 @default(0) // توان همکاری تیمی، چارچوب‌پذیری و بازخورد (۰ تا ۲۵)
+  rawAxis5            Int                 @default(0) // جمع خام (۰ تا ۱۰۰)
+  qualitativeAxis5    String?             // برچسب کیفی
+
+  // نمره کل موزون و جمع‌بندی نهایی
+  totalWeightedScore  Float               @default(0)
+  finalRecommendation CollaborationStatus @default(PENDING_EVALUATION)
+  finalNotes          String?             @db.Text
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@map("teacher_evaluations")
 }
