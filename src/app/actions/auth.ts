@@ -12,8 +12,14 @@ export async function loginAction(prevState: any, formData: FormData) {
     return { error: "لطفاً نام کاربری و کلمه عبور را وارد کنید." };
   }
 
-  const user = await prisma.user.findUnique({
-    where: { username: username.trim() },
+  // ارزیاب یا ادمین می‌تواند با نام کاربری یا شماره موبایل وارد شود
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { username: username.trim() },
+        { phone: username.trim() },
+      ],
+    },
   });
 
   if (!user || user.password !== password.trim()) {

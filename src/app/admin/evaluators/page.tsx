@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { UserPlus, UserCheck, UserX, Phone, Calendar, ClipboardCheck } from "lucide-react";
-import { toggleEvaluatorStatusAction } from "@/app/actions/evaluator";
+import { UserPlus } from "lucide-react";
+import EvaluatorsTableClient from "./EvaluatorsTableClient";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,7 @@ export default async function EvaluatorsListPage() {
             مدیریت ارزیاب‌های سامانه
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            تعریف دستی ارزیاب‌ها، پایش ارزیابی‌های ثبت‌شده و کنترل وضعیت دسترسی
+            تعریف دستی ارزیاب‌ها، ارسال دستی اطلاعات ورود با پیامک و کنترل وضعیت دسترسی
           </p>
         </div>
 
@@ -41,84 +41,8 @@ export default async function EvaluatorsListPage() {
         </Link>
       </div>
 
-      {/* جدول ارزیاب‌ها */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-sm">
-            <thead className="bg-slate-50/80 text-slate-500 border-b border-slate-200/80 text-xs font-semibold">
-              <tr>
-                <th className="py-3.5 px-6">نام و نام خانوادگی</th>
-                <th className="py-3.5 px-6">نام کاربری</th>
-                <th className="py-3.5 px-6">شماره همراه</th>
-                <th className="py-3.5 px-6 text-center">ارزیابی‌های ثبت‌شده</th>
-                <th className="py-3.5 px-6 text-center">مدارس ثبت‌شده</th>
-                <th className="py-3.5 px-6 text-center">وضعیت دسترسی</th>
-                <th className="py-3.5 px-6 text-left">عملیات</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {evaluators.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 text-sm">
-                    هیچ ارزیابی تعریف نشده است. از دکمه «تعریف ارزیاب جدید» استفاده کنید.
-                  </td>
-                </tr>
-              ) : (
-                evaluators.map((ev) => (
-                  <tr key={ev.id} className="hover:bg-slate-50/50 transition">
-                    <td className="py-4 px-6 font-semibold text-slate-900">
-                      {ev.fullName}
-                    </td>
-                    <td className="py-4 px-6 font-mono text-xs text-slate-600">
-                      {ev.username}
-                    </td>
-                    <td className="py-4 px-6 text-slate-600">
-                      {ev.phone || "—"}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
-                        {ev._count.teacherEvaluations} فرم
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-700">
-                        {ev._count.createdSchools} مدرسه
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      {ev.isActive ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                          فعال
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                          غیرفعال
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6 text-left">
-                      <form action={toggleEvaluatorStatusAction.bind(null, ev.id)}>
-                        <button
-                          type="submit"
-                          className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition cursor-pointer ${
-                            ev.isActive
-                              ? "border-rose-200 text-rose-600 hover:bg-rose-50"
-                              : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                          }`}
-                        >
-                          {ev.isActive ? "غیرفعال‌سازی" : "فعال‌سازی"}
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* جدول تعاملی ارزیاب‌ها به همراه امکان کپی سریع پیامک */}
+      <EvaluatorsTableClient evaluators={evaluators} />
     </div>
   );
 }
