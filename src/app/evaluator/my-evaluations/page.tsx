@@ -22,26 +22,40 @@ export default async function MyEvaluationsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "KEY_AXIS":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+            محور
+          </span>
+        );
       case "DEVELOPMENTAL_RELATION":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             مستعد ارتباط رشدی
           </span>
         );
       case "OCCASIONAL_RELATION":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
             ارتباط موردی
           </span>
         );
       case "UNSUITABLE":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
             نامناسب همکاری
           </span>
         );
       default:
-        return null;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+            در انتظار ارزیابی
+          </span>
+        );
     }
   };
 

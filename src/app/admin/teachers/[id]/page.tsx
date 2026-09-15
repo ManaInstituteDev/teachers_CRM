@@ -42,23 +42,30 @@ export default async function TeacherDetailPage({
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "KEY_AXIS":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-purple-100 text-purple-800 border border-purple-300">
+            <span className="w-2 h-2 rounded-full bg-purple-600"></span>
+            محور (نخبه و پیشرو شبکه)
+          </span>
+        );
       case "DEVELOPMENTAL_RELATION":
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
             <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            مستعد ارتباط رشدی (نخبه شبکه)
+            مستعد ارتباط رشدی
           </span>
         );
       case "OCCASIONAL_RELATION":
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
             <span className="w-2 h-2 rounded-full bg-amber-600"></span>
             ارتباط موردی
           </span>
         );
       case "UNSUITABLE":
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
             <span className="w-2 h-2 rounded-full bg-rose-600"></span>
             نامناسب همکاری
           </span>
@@ -84,7 +91,7 @@ export default async function TeacherDetailPage({
   };
 
   return (
-    <div className="p-6 md:p-10 space-y-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 md:p-10 space-y-8 max-w-5xl mx-auto">
       {/* دکمه بازگشت */}
       <Link
         href="/admin/teachers"
@@ -98,56 +105,71 @@ export default async function TeacherDetailPage({
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xl">
               <GraduationCap className="w-8 h-8" />
             </div>
             <div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl font-bold text-slate-900">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-black text-slate-900">
                   {teacher.firstName} {teacher.lastName}
                 </h1>
                 {getStatusBadge(teacher.collaborationStatus)}
               </div>
-              <p className="text-sm text-slate-500 mt-1">
-                رشته تدریس: <strong className="text-slate-700">{teacher.subject}</strong> | مقطع: <strong className="text-slate-700">{teacher.grade}</strong>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                دبیر {teacher.subject} • {teacher.grade} • سابقه: {teacher.teachingYears} سال
               </p>
             </div>
           </div>
 
           {latestEval && (
-            <div className="bg-indigo-50/80 border border-indigo-100 rounded-2xl p-4 text-center shrink-0">
-              <div className="text-xs text-indigo-700 font-semibold mb-0.5">امتیاز کل موزون</div>
-              <div className="text-3xl font-extrabold text-indigo-600">
-                {latestEval.totalWeightedScore.toFixed(1)}
-                <span className="text-xs font-normal text-slate-500 mr-1">/ ۱۰۰</span>
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 shrink-0">
+              <div className="text-right">
+                <div className="text-xs text-indigo-700 font-semibold">نمره موزون کل</div>
+                <div className="text-3xl font-black text-indigo-900">
+                  {latestEval.totalWeightedScore.toFixed(1)} <span className="text-xs font-normal text-slate-500">/ ۱۰۰</span>
+                </div>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
+                <Award className="w-5 h-5" />
               </div>
             </div>
           )}
         </div>
 
-        {/* مشخصات تکمیلی */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 text-xs text-slate-600">
-          <div>
-            <span className="text-slate-400 block mb-1">مدرسه محل تدریس:</span>
-            <span className="font-semibold text-slate-800">
+        {/* مشخصات جزئی */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 text-xs sm:text-sm">
+          <div className="space-y-1">
+            <span className="text-slate-400 block text-xs">مدرسه محل خدمت:</span>
+            <strong className="text-slate-800 flex items-center gap-1.5">
+              <School className="w-4 h-4 text-indigo-500" />
               {teacher.school?.name || teacher.schoolNameManual || "نامشخص"}
-            </span>
+            </strong>
           </div>
-          <div>
-            <span className="text-slate-400 block mb-1">سابقه تدریس:</span>
-            <span className="font-semibold text-slate-800">{teacher.teachingYears} سال</span>
+
+          <div className="space-y-1">
+            <span className="text-slate-400 block text-xs">کد ملی:</span>
+            <strong className="text-slate-800 font-mono">
+              {teacher.nationalCode || "ثبت نشده"}
+            </strong>
           </div>
-          <div>
-            <span className="text-slate-400 block mb-1">شماره تماس:</span>
-            <span className="font-semibold text-slate-800" dir="ltr">{teacher.phone || "—"}</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block mb-1">کد ملی:</span>
-            <span className="font-semibold text-slate-800">{teacher.nationalCode || "—"}</span>
+
+          <div className="space-y-1">
+            <span className="text-slate-400 block text-xs">شماره تماس:</span>
+            <strong className="text-slate-800 font-mono">
+              {teacher.phone || "ثبت نشده"}
+            </strong>
           </div>
         </div>
+
+        {teacher.bio && (
+          <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-600 leading-relaxed">
+            <strong className="text-slate-700 block mb-1">درباره و پیشینه معلم:</strong>
+            {teacher.bio}
+          </div>
+        )}
       </div>
 
+      {/* کارنامه ارزیابی */}
       {!latestEval ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 text-slate-400 text-sm">
           هنوز فرم ارزیابی برای این معلم ثبت نشده است.
@@ -176,36 +198,36 @@ export default async function TeacherDetailPage({
             </div>
           </div>
 
-          {/* خلاصه اوزان ۵ محور */}
+          {/* خلاصه اوزان ۵ محور بر اساس سند */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
               <div className="text-[11px] text-slate-500 font-medium">۱. رابطه تربیتی (۱۵٪)</div>
-              <div className="text-xl font-bold text-slate-900 mt-1">{latestEval.rawAxis1} <span className="text-xs font-normal text-slate-400">از ۱۰۰</span></div>
-              <div className="text-[10px] text-emerald-600 font-semibold mt-1">سهم: {((latestEval.rawAxis1 * 15) / 100).toFixed(1)}</div>
+              <div className="text-xl font-bold text-slate-900 mt-1">{latestEval.rawAxis1} <span className="text-xs font-normal text-slate-400">/ ۵۰</span></div>
+              <div className="text-[10px] text-indigo-600 font-semibold mt-1">سهم: {((latestEval.rawAxis1 / 50) * 15).toFixed(1)}</div>
             </div>
 
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
               <div className="text-[11px] text-slate-500 font-medium">۲. شناسایی استعداد (۲۵٪)</div>
-              <div className="text-xl font-bold text-slate-900 mt-1">{latestEval.rawAxis2} <span className="text-xs font-normal text-slate-400">از ۱۰۰</span></div>
-              <div className="text-[10px] text-emerald-600 font-semibold mt-1">سهم: {((latestEval.rawAxis2 * 25) / 100).toFixed(1)}</div>
+              <div className="text-xl font-bold text-slate-900 mt-1">{latestEval.rawAxis2} <span className="text-xs font-normal text-slate-400">/ ۸۰</span></div>
+              <div className="text-[10px] text-emerald-600 font-semibold mt-1">سهم: {((latestEval.rawAxis2 / 80) * 25).toFixed(1)}</div>
             </div>
 
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
               <div className="text-[11px] text-slate-500 font-medium">۳. علوم انسانی (۱۵٪)</div>
-              <div className="text-xl font-bold text-slate-900 mt-1">{latestEval.rawAxis3} <span className="text-xs font-normal text-slate-400">از ۱۰۰</span></div>
-              <div className="text-[10px] text-emerald-600 font-semibold mt-1">سهم: {((latestEval.rawAxis3 * 15) / 100).toFixed(1)}</div>
+              <div className="text-xl font-bold text-slate-900 mt-1">{latestEval.rawAxis3} <span className="text-xs font-normal text-slate-400">/ ۱۰۰</span></div>
+              <div className="text-[10px] text-amber-600 font-semibold mt-1">سهم: {((latestEval.rawAxis3 / 100) * 15).toFixed(1)}</div>
             </div>
 
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
               <div className="text-[11px] text-slate-500 font-medium">۴. شبکه‌سازی (۲۵٪)</div>
-              <div className="text-xl font-bold text-slate-900 mt-1">{latestEval.rawAxis4} <span className="text-xs font-normal text-slate-400">از ۱۰۰</span></div>
-              <div className="text-[10px] text-emerald-600 font-semibold mt-1">سهم: {((latestEval.rawAxis4 * 25) / 100).toFixed(1)}</div>
+              <div className="text-xl font-bold text-slate-900 mt-1">{latestEval.rawAxis4} <span className="text-xs font-normal text-slate-400">/ ۱۰۰</span></div>
+              <div className="text-[10px] text-sky-600 font-semibold mt-1">سهم: {((latestEval.rawAxis4 / 100) * 25).toFixed(1)}</div>
             </div>
 
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center col-span-2 sm:col-span-1">
-              <div className="text-[11px] text-slate-500 font-medium">۵. توان اجرایی (۲۰٪)</div>
-              <div className="text-xl font-bold text-slate-900 mt-1">{latestEval.rawAxis5} <span className="text-xs font-normal text-slate-400">از ۱۰۰</span></div>
-              <div className="text-[10px] text-emerald-600 font-semibold mt-1">سهم: {((latestEval.rawAxis5 * 20) / 100).toFixed(1)}</div>
+              <div className="text-[11px] text-slate-500 font-medium">۵. تعهد و اجرا (۲۰٪)</div>
+              <div className="text-xl font-bold text-slate-900 mt-1">{latestEval.rawAxis5} <span className="text-xs font-normal text-slate-400">/ ۷۵</span></div>
+              <div className="text-[10px] text-rose-600 font-semibold mt-1">سهم: {((latestEval.rawAxis5 / 75) * 20).toFixed(1)}</div>
             </div>
           </div>
 
@@ -218,7 +240,7 @@ export default async function TeacherDetailPage({
                   ۱. رابطه تربیتی و اثرگذاری بر دانش‌آموز (وزن ۱۵٪)
                 </h3>
                 <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl">
-                  امتیاز خام: {latestEval.rawAxis1} از ۱۰۰
+                  امتیاز خام: {latestEval.rawAxis1} از ۵۰
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -230,18 +252,10 @@ export default async function TeacherDetailPage({
                   <span className="text-slate-600">وجود رابطه اعتمادآمیز و رجوع واقعی دانش‌آموزان</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis1_2} / ۲۰</strong>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">احترام به تفاوت‌های فردی و پرهیز از مقایسه مخرب</span>
-                  <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis1_3} / ۲۰</strong>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">توان اثرگذاری و ایجاد انگیزه بدون تحمیل نظر</span>
-                  <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis1_4} / ۳۰</strong>
-                </div>
               </div>
               {latestEval.qualitativeAxis1 && (
                 <div className="text-xs text-indigo-800 bg-indigo-50/60 p-3 rounded-xl">
-                  <strong>سطح کیفی ارزیاب: </strong> {latestEval.qualitativeAxis1}
+                  <strong>توصیف کیفی محور ۱: </strong> {latestEval.qualitativeAxis1}
                 </div>
               )}
               {latestEval.notesAxis1 && (
@@ -255,34 +269,32 @@ export default async function TeacherDetailPage({
             {/* محور ۲ */}
             <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div>
-                  <h3 className="font-bold text-sm sm:text-base text-slate-900">
-                    ۲. توان شناسایی استعداد (وزن ۲۵٪)
-                  </h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">در این محور فقط توان شناسایی سنجیده می‌شود؛ مؤلفه ارجاع حذف شده است.</p>
-                </div>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl">
-                  امتیاز خام: {latestEval.rawAxis2} از ۱۰۰
+                <h3 className="font-bold text-sm sm:text-base text-slate-900">
+                  ۲. توان شناسایی استعداد (وزن ۲۵٪)
+                </h3>
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl">
+                  امتیاز خام: {latestEval.rawAxis2} از ۸۰
                 </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">تشخیص ظرفیت دانش‌آموز فراتر از معدل و رتبه</span>
+                  <span className="text-slate-600">تشخیص ظرفیت فراتر از معدل و رتبه</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis2_1} / ۳۰</strong>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">ارائه شواهد عینی از رفتار، تولید یا پرسش متفاوت</span>
+                  <span className="text-slate-600">ارائه شواهد عینی از عملکرد متفاوت</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis2_2} / ۳۰</strong>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">توان تفکیک میان علاقه، استعداد، پشتکار و موفقیت</span>
+                  <span className="text-slate-600">تشخیص ظرفیت‌های علوم انسانی</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis2_3} / ۲۰</strong>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">توان تشخیص ظرفیت‌های علوم انسانی (تحلیل، استدلال و...)</span>
-                  <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis2_4} / ۲۰</strong>
-                </div>
               </div>
+              {latestEval.qualitativeAxis2 && (
+                <div className="text-xs text-emerald-800 bg-emerald-50/60 p-3 rounded-xl">
+                  <strong>توصیف کیفی محور ۲: </strong> {latestEval.qualitativeAxis2}
+                </div>
+              )}
             </div>
 
             {/* محور ۳ */}
@@ -291,13 +303,13 @@ export default async function TeacherDetailPage({
                 <h3 className="font-bold text-sm sm:text-base text-slate-900">
                   ۳. نگرش و ظرفیت علوم انسانی (وزن ۱۵٪)
                 </h3>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl">
+                <span className="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-xl">
                   امتیاز خام: {latestEval.rawAxis3} از ۱۰۰
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">باور به اهمیت و پرهیز از نگاه کلیشه‌ای</span>
+                  <span className="text-slate-600">باور به اهمیت و شأن علوم انسانی</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis3_1} / ۳۵</strong>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
@@ -305,13 +317,13 @@ export default async function TeacherDetailPage({
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis3_2} / ۳۵</strong>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">پیوندزدن علوم انسانی با مسائل واقعی جامعه</span>
+                  <span className="text-slate-600">توان پیوند علوم انسانی با مسائل واقعی</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis3_3} / ۳۰</strong>
                 </div>
               </div>
               {latestEval.qualitativeAxis3 && (
-                <div className="text-xs text-indigo-800 bg-indigo-50/60 p-3 rounded-xl">
-                  <strong>سطح کیفی ارزیاب: </strong> {latestEval.qualitativeAxis3}
+                <div className="text-xs text-amber-800 bg-amber-50/60 p-3 rounded-xl">
+                  <strong>توصیف کیفی محور ۳: </strong> {latestEval.qualitativeAxis3}
                 </div>
               )}
             </div>
@@ -322,27 +334,27 @@ export default async function TeacherDetailPage({
                 <h3 className="font-bold text-sm sm:text-base text-slate-900">
                   ۴. سرمایه ارتباطی و ظرفیت شبکه‌سازی (وزن ۲۵٪)
                 </h3>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl">
+                <span className="text-xs font-bold text-sky-700 bg-sky-50 px-3 py-1 rounded-xl">
                   امتیاز خام: {latestEval.rawAxis4} از ۱۰۰
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">دسترسی مؤثر به دانش‌آموزان مستعد و مدارس</span>
+                  <span className="text-slate-600">دسترسی موثر به دانش‌آموزان مستعد و مدارس</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis4_1} / ۳۵</strong>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">ارتباط حرفه‌ای و قابل اتکا با کادر آموزشی</span>
+                  <span className="text-slate-600">ارتباط حرفه‌ای با فعالان و مدیران تربیتی</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis4_2} / ۳۵</strong>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">توان معرفی و همراه کردن افراد با برنامه مشترک</span>
+                  <span className="text-slate-600">توان همراهی افراد با برنامه مشترک</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis4_3} / ۳۰</strong>
                 </div>
               </div>
               {latestEval.qualitativeAxis4 && (
-                <div className="text-xs text-indigo-800 bg-indigo-50/60 p-3 rounded-xl">
-                  <strong>سطح کیفی ارزیاب: </strong> {latestEval.qualitativeAxis4}
+                <div className="text-xs text-sky-800 bg-sky-50/60 p-3 rounded-xl">
+                  <strong>توصیف کیفی محور ۴: </strong> {latestEval.qualitativeAxis4}
                 </div>
               )}
             </div>
@@ -353,43 +365,39 @@ export default async function TeacherDetailPage({
                 <h3 className="font-bold text-sm sm:text-base text-slate-900">
                   ۵. تعهد و قابلیت همکاری اجرایی (وزن ۲۰٪)
                 </h3>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl">
-                  امتیاز خام: {latestEval.rawAxis5} از ۱۰۰
+                <span className="text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-xl">
+                  امتیاز خام: {latestEval.rawAxis5} از ۷۵
                 </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">سابقه اجرای فعالیت از آغاز تا پایان</span>
+                  <span className="text-slate-600">سابقه اجرای کامل پروژه تربیتی/آموزشی</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis5_1} / ۳۰</strong>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">داشتن زمان و امکان مشخص برای همکاری منظم</span>
+                  <span className="text-slate-600">داشتن زمان و امکان همکاری منظم</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis5_2} / ۲۰</strong>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">سابقه پیگیری، پاسخگویی و به‌انجام‌رساندن تعهدات</span>
+                  <span className="text-slate-600">توان کار تیمی و پذیرش چارچوب و بازخورد</span>
                   <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis5_3} / ۲۵</strong>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 flex justify-between items-center">
-                  <span className="text-slate-600">توان همکاری تیمی، چارچوب‌پذیری و بازخورد</span>
-                  <strong className="text-slate-900 text-sm font-bold">{latestEval.scoreAxis5_4} / ۲۵</strong>
                 </div>
               </div>
               {latestEval.qualitativeAxis5 && (
-                <div className="text-xs text-indigo-800 bg-indigo-50/60 p-3 rounded-xl">
-                  <strong>سطح کیفی ارزیاب: </strong> {latestEval.qualitativeAxis5}
+                <div className="text-xs text-rose-800 bg-rose-50/60 p-3 rounded-xl">
+                  <strong>توصیف کیفی محور ۵: </strong> {latestEval.qualitativeAxis5}
                 </div>
               )}
             </div>
 
-            {/* یادداشت جمع‌بندی نهایی ارزیاب */}
+            {/* جمع‌بندی نهایی ارزیاب */}
             {latestEval.finalNotes && (
-              <div className="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-6 space-y-2">
-                <h4 className="text-sm font-bold text-amber-900 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-amber-700" />
-                  <span>جمع‌بندی و پیشنهاد نهایی ارزیاب:</span>
-                </h4>
-                <p className="text-xs sm:text-sm text-amber-950 leading-relaxed">
+              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6 space-y-2">
+                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-indigo-600" />
+                  <span>جمع‌بندی و راهکارهای اقدام ارزیاب:</span>
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
                   {latestEval.finalNotes}
                 </p>
               </div>

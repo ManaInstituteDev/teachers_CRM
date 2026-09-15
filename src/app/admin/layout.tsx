@@ -10,6 +10,9 @@ import {
   LogOut,
   Shield,
   FileCheck,
+  BarChart3,
+  Clock,
+  UserCheck,
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -50,11 +53,11 @@ export default async function AdminLayout({
             </Link>
 
             <Link
-              href="/admin/evaluators"
+              href="/admin/analytics"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-800 hover:text-white transition"
             >
-              <Users className="w-4 h-4 text-emerald-400" />
-              <span>مدیریت ارزیاب‌ها</span>
+              <BarChart3 className="w-4 h-4 text-purple-400" />
+              <span>تحلیل داده‌ها و ارزیاب‌ها</span>
             </Link>
 
             <Link
@@ -63,6 +66,30 @@ export default async function AdminLayout({
             >
               <GraduationCap className="w-4 h-4 text-amber-400" />
               <span>بانک معلمان و نتایج</span>
+            </Link>
+
+            <Link
+              href="/admin/evaluators"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-800 hover:text-white transition"
+            >
+              <Users className="w-4 h-4 text-emerald-400" />
+              <span>مدیریت ارزیاب‌ها</span>
+            </Link>
+
+            <Link
+              href="/admin/evaluators/assistants"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-800 hover:text-white transition text-slate-300"
+            >
+              <UserCheck className="w-4 h-4 text-sky-400" />
+              <span>مدیریت کمک‌ارزیاب‌ها</span>
+            </Link>
+
+            <Link
+              href="/admin/timesheets"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-800 hover:text-white transition"
+            >
+              <Clock className="w-4 h-4 text-amber-400" />
+              <span>پایش ساعات کاری</span>
             </Link>
 
             <Link

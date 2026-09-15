@@ -10,6 +10,7 @@ import {
   LogOut,
   UserCheck,
   PlusCircle,
+  Clock,
 } from "lucide-react";
 
 export default async function EvaluatorLayout({
@@ -63,6 +64,14 @@ export default async function EvaluatorLayout({
             >
               <PlusCircle className="w-4 h-4 text-sky-400" />
               <span>ثبت شناسنامه مدرسه</span>
+            </Link>
+
+            <Link
+              href="/evaluator/timesheets"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-800 hover:text-white transition"
+            >
+              <Clock className="w-4 h-4 text-purple-400" />
+              <span>ثبت ساعت کاری</span>
             </Link>
 
             <Link

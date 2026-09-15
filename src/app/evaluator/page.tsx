@@ -11,6 +11,8 @@ import {
   ArrowUpRight,
   History,
   CheckCircle2,
+  Clock,
+  Users,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +24,7 @@ export default async function EvaluatorDashboardPage() {
   }
 
   // دریافت آمار مربوط به همین ارزیاب
-  const [evaluationsCount, schoolsCount, myEvaluations] = await Promise.all([
+  const [evaluationsCount, schoolsCount, myEvaluations, timesheetLogs, assistants] = await Promise.all([
     prisma.teacherEvaluation.count({
       where: { evaluatorId: user.id },
     }),
@@ -37,7 +39,18 @@ export default async function EvaluatorDashboardPage() {
         teacher: { include: { school: true } },
       },
     }),
+    prisma.timesheetLog.findMany({
+      where: { evaluatorId: user.id },
+      select: { durationMinutes: true },
+    }),
+    prisma.assistantEvaluator.findMany({
+      where: { evaluatorId: user.id, isActive: true },
+    }),
   ]);
+
+  const totalHours = (
+    timesheetLogs.reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60
+  ).toFixed(1);
 
   return (
     <div className="p-6 md:p-10 space-y-8 max-w-5xl mx-auto">
@@ -58,69 +71,111 @@ export default async function EvaluatorDashboardPage() {
       </div>
 
       {/* عملیات‌های سریع */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link
           href="/evaluator/evaluate"
-          className="group p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition flex items-center justify-between"
+          className="group p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition flex items-center justify-between"
         >
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition">
-              <ClipboardPenLine className="w-7 h-7" />
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
+              <ClipboardPenLine className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-slate-900 group-hover:text-emerald-700 transition">
-                ثبت ارزیابی معلم جدید
+              <h3 className="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition">
+                ثبت ارزیابی معلم
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                فرم ۵ محوره سنجش ظرفیت شبکه‌ای و نمره موزون
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                فرم ۵ محوره سند
               </p>
             </div>
           </div>
-          <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 group-hover:-translate-x-1 group-hover:-translate-y-1 transition" />
+          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
+        </Link>
+
+        <Link
+          href="/evaluator/timesheets"
+          className="group p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-purple-300 transition flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
+              <Clock className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-slate-900 group-hover:text-purple-700 transition">
+                ثبت ساعت کاری
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                برای خود و کمک‌ارزیاب
+              </p>
+            </div>
+          </div>
+          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
         </Link>
 
         <Link
           href="/evaluator/schools/new"
-          className="group p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-sky-300 transition flex items-center justify-between"
+          className="group p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-sky-300 transition flex items-center justify-between"
         >
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center group-hover:scale-105 transition">
-              <PlusCircle className="w-7 h-7" />
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
+              <PlusCircle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-slate-900 group-hover:text-sky-700 transition">
-                ثبت شناسنامه مدرسه جدید
+              <h3 className="font-bold text-sm text-slate-900 group-hover:text-sky-700 transition">
+                شناسنامه مدرسه
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                ثبت اطلاعات پایه، رویکرد و ظرفیت علوم انسانی
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                ظرفیت علوم انسانی
               </p>
             </div>
           </div>
-          <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-sky-600 group-hover:-translate-x-1 group-hover:-translate-y-1 transition" />
+          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-sky-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
         </Link>
       </div>
 
       {/* آمار خلاصه من */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1">ارزیابی‌های ثبت‌شده توسط من</p>
+            <p className="text-xs font-semibold text-slate-500 mb-1">ارزیابی‌های ثبت‌شده</p>
             <h3 className="text-2xl font-bold text-slate-900">{evaluationsCount}</h3>
-            <p className="text-[11px] text-emerald-600 font-medium mt-1">فرم نهایی در دیتابیس</p>
+            <p className="text-[11px] text-emerald-600 font-medium mt-1">فرم نهایی معلمان</p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <Award className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <Award className="w-5 h-5" />
           </div>
         </div>
 
         <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1">مدارس ثبت‌شده توسط من</p>
+            <p className="text-xs font-semibold text-slate-500 mb-1">مدارس ثبت‌شده</p>
             <h3 className="text-2xl font-bold text-slate-900">{schoolsCount}</h3>
             <p className="text-[11px] text-sky-600 font-medium mt-1">پروفایل و شناسنامه</p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
-            <School className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+            <School className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 mb-1">ساعت کارکرد ثبت‌شده</p>
+            <h3 className="text-2xl font-bold text-slate-900">{totalHours} <span className="text-xs font-normal text-slate-400">ساعت</span></h3>
+            <p className="text-[11px] text-purple-600 font-medium mt-1">خود و کمک‌ارزیاب</p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 mb-1">کمک‌ارزیاب‌های همکار</p>
+            <h3 className="text-2xl font-bold text-slate-900">{assistants.length} <span className="text-xs font-normal text-slate-400">نفر</span></h3>
+            <p className="text-[11px] text-indigo-600 font-medium mt-1">تیم متصل مدیریت</p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <Users className="w-5 h-5" />
           </div>
         </div>
       </div>

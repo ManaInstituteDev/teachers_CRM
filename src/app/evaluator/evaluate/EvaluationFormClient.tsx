@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useMemo } from "react";
 import { submitEvaluationAction } from "@/app/actions/evaluation";
+import { calculateAxisQualitative, calculateFinalCollaborationStatus } from "@/lib/scoring";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -14,6 +15,14 @@ import {
   CheckCircle2,
   FileText,
   HelpCircle,
+  TrendingUp,
+  AlertCircle,
+  Layers,
+  HeartHandshake,
+  Compass,
+  BookOpen,
+  Share2,
+  Briefcase,
 } from "lucide-react";
 
 interface SchoolOption {
@@ -29,100 +38,145 @@ export default function EvaluationFormClient({
 }) {
   const [state, formAction, isPending] = useActionState(submitEvaluationAction, null);
 
-  // نمرات محور ۱
-  const [a1_1, setA1_1] = useState(25);
-  const [a1_2, setA1_2] = useState(15);
-  const [a1_3, setA1_3] = useState(15);
-  const [a1_4, setA1_4] = useState(25);
+  // نمرات محور ۱: رابطه تربیتی (سقف ۵۰ - وزن ۱۵٪)
+  const [a1_1, setA1_1] = useState(24);
+  const [a1_2, setA1_2] = useState(16);
 
-  // نمرات محور ۲
-  const [a2_1, setA2_1] = useState(25);
-  const [a2_2, setA2_2] = useState(25);
-  const [a2_3, setA2_3] = useState(15);
-  const [a2_4, setA2_4] = useState(15);
+  // نمرات محور ۲: شناسایی استعداد (سقف ۸۰ - وزن ۲۵٪)
+  const [a2_1, setA2_1] = useState(24);
+  const [a2_2, setA2_2] = useState(24);
+  const [a2_3, setA2_3] = useState(16);
 
-  // نمرات محور ۳
-  const [a3_1, setA3_1] = useState(30);
-  const [a3_2, setA3_2] = useState(30);
-  const [a3_3, setA3_3] = useState(25);
+  // نمرات محور ۳: نگرش علوم انسانی (سقف ۱۰۰ - وزن ۱۵٪)
+  const [a3_1, setA3_1] = useState(28);
+  const [a3_2, setA3_2] = useState(28);
+  const [a3_3, setA3_3] = useState(24);
 
-  // نمرات محور ۴
-  const [a4_1, setA4_1] = useState(30);
-  const [a4_2, setA4_2] = useState(30);
-  const [a4_3, setA4_3] = useState(25);
+  // نمرات محور ۴: سرمایه ارتباطی (سقف ۱۰۰ - وزن ۲۵٪)
+  const [a4_1, setA4_1] = useState(28);
+  const [a4_2, setA4_2] = useState(28);
+  const [a4_3, setA4_3] = useState(24);
 
-  // نمرات محور ۵
-  const [a5_1, setA5_1] = useState(25);
+  // نمرات محور ۵: تعهد و همکاری اجرایی (سقف ۷۵ - وزن ۲۰٪)
+  const [a5_1, setA5_1] = useState(24);
   const [a5_2, setA5_2] = useState(15);
   const [a5_3, setA5_3] = useState(20);
-  const [a5_4, setA5_4] = useState(20);
 
-  // محاسبات آنلاین نمرات خام و نمره موزون
-  const raw1 = a1_1 + a1_2 + a1_3 + a1_4;
-  const raw2 = a2_1 + a2_2 + a2_3 + a2_4;
+  // محاسبات برخط نمرات خام
+  const raw1 = a1_1 + a1_2;
+  const raw2 = a2_1 + a2_2 + a2_3;
   const raw3 = a3_1 + a3_2 + a3_3;
   const raw4 = a4_1 + a4_2 + a4_3;
-  const raw5 = a5_1 + a5_2 + a5_3 + a5_4;
+  const raw5 = a5_1 + a5_2 + a5_3;
 
+  // توصیف‌های کیفی بلادرنگ هر محور
+  const desc1 = useMemo(() => calculateAxisQualitative(1, raw1), [raw1]);
+  const desc2 = useMemo(() => calculateAxisQualitative(2, raw2), [raw2]);
+  const desc3 = useMemo(() => calculateAxisQualitative(3, raw3), [raw3]);
+  const desc4 = useMemo(() => calculateAxisQualitative(4, raw4), [raw4]);
+  const desc5 = useMemo(() => calculateAxisQualitative(5, raw5), [raw5]);
+
+  // محاسبه سهم هر محور در نمره کل موزون
+  const weighted1 = useMemo(() => (raw1 / 50) * 15, [raw1]);
+  const weighted2 = useMemo(() => (raw2 / 80) * 25, [raw2]);
+  const weighted3 = useMemo(() => (raw3 / 100) * 15, [raw3]);
+  const weighted4 = useMemo(() => (raw4 / 100) * 25, [raw4]);
+  const weighted5 = useMemo(() => (raw5 / 75) * 20, [raw5]);
+
+  // نمره کل موزون از ۱۰۰
   const totalWeighted = useMemo(() => {
-    const sum =
-      raw1 * 0.15 +
-      raw2 * 0.25 +
-      raw3 * 0.15 +
-      raw4 * 0.25 +
-      raw5 * 0.2;
-    return Number(sum.toFixed(1));
-  }, [raw1, raw2, raw3, raw4, raw5]);
+    const sum = weighted1 + weighted2 + weighted3 + weighted4 + weighted5;
+    return Number(sum.toFixed(2));
+  }, [weighted1, weighted2, weighted3, weighted4, weighted5]);
 
-  // پیشنهاد وضعیت همکاری بر اساس نمره
-  const suggestedStatus = useMemo(() => {
-    if (totalWeighted >= 80) return "DEVELOPMENTAL_RELATION";
-    if (totalWeighted >= 60) return "OCCASIONAL_RELATION";
-    return "UNSUITABLE";
+  // وضعیت نهایی ۴‌گانه بر اساس نمره کل موزون
+  const calculatedStatus = useMemo(() => {
+    return calculateFinalCollaborationStatus(totalWeighted);
   }, [totalWeighted]);
 
-  const [finalStatus, setFinalStatus] = useState<string>(suggestedStatus);
+  const [overrideStatus, setOverrideStatus] = useState<string | null>(null);
+  const currentFinalStatus = overrideStatus || calculatedStatus;
+
+  const getStatusBadgeInfo = (status: string) => {
+    switch (status) {
+      case "KEY_AXIS":
+        return {
+          title: "محور (نخبه و پیشرو)",
+          desc: "بالای ۸۰ درصد نمره کل - شایستگی لیدری و مدیریت شبکه‌ای",
+          bg: "bg-purple-50 text-purple-700 border-purple-200",
+          indicator: "bg-purple-600",
+        };
+      case "DEVELOPMENTAL_RELATION":
+        return {
+          title: "مستعد ارتباط رشدی",
+          desc: "بین ۵۰ تا ۸۰ درصد نمره کل - مناسب عضویت در کارگروه‌های تخصصی با همراهی",
+          bg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+          indicator: "bg-emerald-600",
+        };
+      case "OCCASIONAL_RELATION":
+        return {
+          title: "ارتباط موردی",
+          desc: "بین ۳۰ تا ۵۰ درصد نمره کل - مناسب همکاری‌های مقطعی، رویدادها یا کارگاه‌ها",
+          bg: "bg-amber-50 text-amber-700 border-amber-200",
+          indicator: "bg-amber-600",
+        };
+      case "UNSUITABLE":
+      default:
+        return {
+          title: "نامناسب همکاری",
+          desc: "زیر ۳۰ درصد نمره کل - فاقد نگرش یا ظرفیت‌های پایه شبکه‌ای",
+          bg: "bg-rose-50 text-rose-700 border-rose-200",
+          indicator: "bg-rose-600",
+        };
+    }
+  };
+
+  const statusInfo = getStatusBadgeInfo(currentFinalStatus);
 
   return (
     <div className="p-4 sm:p-6 md:p-10 max-w-6xl mx-auto space-y-6">
-      {/* بازگشت */}
+      {/* دکمه بازگشت */}
       <Link
         href="/evaluator"
         className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition"
       >
         <ArrowRight className="w-4 h-4" />
-        <span>بازگشت به داشبورد</span>
+        <span>بازگشت به داشبورد ارزیاب</span>
       </Link>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
-        {/* فرم اصلی ارزیابی */}
-        <div className="flex-1 w-full space-y-8 bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
-          <div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
-              <ClipboardPenLine className="w-6 h-6" />
-            </div>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900">
-              فرم ارزیابی ظرفیت شبکه‌ای معلم
-            </h1>
-            <p className="text-xs text-slate-500 mt-1">
-              ثبت اطلاعات اولیه مصاحبه، شاخص‌های ۵ محوره شایستگی و محاسبه خودکار نمره نهایی
-            </p>
-          </div>
+      <form action={formAction}>
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          {/* بخش اصلی فرم */}
+          <div className="flex-1 w-full space-y-8 bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
+            {/* سربرگ فرم */}
+            <div className="border-b border-slate-100 pb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <ClipboardPenLine className="w-6 h-6" />
+                </div>
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                    فرم ارزیابی ظرفیت شبکه‌ای معلم
+                  </h1>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                    سنجش دقیق ۵ محوره منطبق بر الگوی استاندارد ارزیابی علوم انسانی و شبکه‌سازی
+                  </p>
+                </div>
+              </div>
 
-          {state?.error && (
-            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
-              {state.error}
+              {state?.error && (
+                <div className="mt-4 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{state.error}</span>
+                </div>
+              )}
             </div>
-          )}
 
-          <form action={formAction} className="space-y-8">
-            {/* بخش ۱: اطلاعات اولیه و مصاحبه */}
+            {/* ۱. اطلاعات اولیه معلم و جلسه ارزیابی */}
             <div className="space-y-4">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2 pb-2 border-b border-slate-100">
-                <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold">
-                  •
-                </span>
-                <span>اطلاعات اولیه معلم و مصاحبه</span>
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <User className="w-4 h-4 text-indigo-600" />
+                <span>۱. اطلاعات پایه و شناسایی معلم</span>
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -134,8 +188,8 @@ export default function EvaluationFormClient({
                     type="text"
                     name="firstName"
                     required
-                    placeholder="نام"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm transition outline-none"
+                    placeholder="مثال: سید محمد"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   />
                 </div>
 
@@ -147,47 +201,45 @@ export default function EvaluationFormClient({
                     type="text"
                     name="lastName"
                     required
-                    placeholder="نام خانوادگی"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm transition outline-none"
+                    placeholder="مثال: حسینی"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    شماره تلفن همراه
+                    شماره همراه
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="۰۹۱۲۰۰۰۰۰۰۰"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    کد ملی
                   </label>
                   <input
                     type="text"
-                    name="phone"
-                    placeholder="0912..."
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm transition outline-none font-mono text-left"
-                    dir="ltr"
+                    name="nationalCode"
+                    placeholder="۰۰۱۲۳۴۵۶۷۸"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    سابقه تدریس (سال)
-                  </label>
-                  <input
-                    type="number"
-                    name="teachingYears"
-                    defaultValue={5}
-                    min={0}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm transition outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    رشته تدریس <span className="text-rose-500">*</span>
+                    رشته / درس تدریس <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="subject"
                     required
-                    placeholder="مثال: ادبیات، تاریخ، جامعه‌شناسی، معارف و..."
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm transition outline-none"
+                    placeholder="مثال: ادبیات، تاریخ، جامعه‌شناسی، فلسفه"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   />
                 </div>
 
@@ -199,21 +251,34 @@ export default function EvaluationFormClient({
                     type="text"
                     name="grade"
                     required
-                    placeholder="مثال: متوسطه اول یا متوسطه دوم"
-                    defaultValue="متوسطه دوم"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm transition outline-none"
+                    placeholder="مثال: متوسطه اول / متوسطه دوم پایه دهم و یازدهم"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    مدرسه محل تدریس
+                    سابقه تدریس (سال)
+                  </label>
+                  <input
+                    type="number"
+                    name="teachingYears"
+                    defaultValue="5"
+                    min="0"
+                    max="50"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    مدرسه محل خدمت
                   </label>
                   <select
                     name="schoolId"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm transition outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   >
-                    <option value="">-- انتخاب از مدارس ثبت‌شده --</option>
+                    <option value="">-- انتخاب از مدارس ثبت‌شده یا ورود دستی --</option>
                     {schools.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.name} ({s.district})
@@ -222,21 +287,18 @@ export default function EvaluationFormClient({
                   </select>
                 </div>
 
-                <div>
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    یا نام مدرسه به صورت دستی
+                    نام مدرسه و منطقه (در صورت عدم انتخاب از لیست فوق)
                   </label>
                   <input
                     type="text"
                     name="schoolNameManual"
-                    placeholder="در صورت نبودن در لیست بالا"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm transition outline-none"
+                    placeholder="مثال: دبیرستان نمونه دولتی رشد - منطقه ۲"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   />
                 </div>
-              </div>
 
-              {/* مشخصات گفت‌وگو و ارزیاب */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     مدت گفت‌وگو (دقیقه)
@@ -244,9 +306,10 @@ export default function EvaluationFormClient({
                   <input
                     type="number"
                     name="dialogueDurationMin"
-                    defaultValue={30}
-                    min={5}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm transition outline-none"
+                    defaultValue="45"
+                    min="5"
+                    max="300"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   />
                 </div>
 
@@ -257,7 +320,7 @@ export default function EvaluationFormClient({
                   <select
                     name="familiarityLevel"
                     defaultValue="MEDIUM"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm transition outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   >
                     <option value="LOW">کم</option>
                     <option value="MEDIUM">متوسط</option>
@@ -267,553 +330,655 @@ export default function EvaluationFormClient({
               </div>
             </div>
 
-            {/* محور ۱: رابطه تربیتی و اثرگذاری بر دانش‌آموز (وزن ۱۵٪) */}
-            <div className="space-y-4 pt-4 border-t border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center text-xs font-bold">
-                      ۱
+            <hr className="border-slate-100" />
+
+            {/* --- محور ۱ --- */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">
+                    ۱
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                      رابطه تربیتی و اثرگذاری بر دانش‌آموز
+                    </h3>
+                    <span className="text-xs text-indigo-700 font-medium">
+                      وزن در امتیاز نهایی: ۱۵٪ | سقف نمره خام: ۵۰
                     </span>
-                    <span>رابطه تربیتی و اثرگذاری بر دانش‌آموز (وزن در نهایی: ۱۵٪)</span>
-                  </h2>
+                  </div>
                 </div>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl">
-                  جمع خام: {raw1} از ۱۰۰
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700">نمره خام:</span>
+                  <span className="px-2.5 py-1 rounded-xl bg-white border border-indigo-200 text-indigo-800 font-black text-sm">
+                    {raw1} <span className="text-slate-400 text-xs font-normal">/ ۵۰</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* نشانگر توصیف کیفی محور ۱ */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">توصیف کیفی محور ۱:</span>
+                <span className="text-xs font-bold text-indigo-700 bg-indigo-100/60 px-3 py-1 rounded-lg">
+                  {desc1}
                 </span>
               </div>
 
-              <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    شناخت دانش‌آموزان فراتر از نمره و عملکرد درسی؛ توان توصیف دقیق ویژگی‌های فردی آنان (۰ تا ۳۰)
-                  </label>
+              <div className="space-y-4 pt-2">
+                {/* شاخص ۱-۱ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      شناخت دانش‌آموزان فراتر از نمره و عملکرد درسی؛ توان توصیف دقیق ویژگی‌های فردی آنان
+                    </span>
+                    <span className="font-bold text-indigo-600 shrink-0 mr-2">{a1_1} از ۳۰</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis1_1"
-                    min={0}
-                    max={30}
+                    min="0"
+                    max="30"
                     value={a1_1}
                     onChange={(e) => setA1_1(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-indigo-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (فاقد شناخت)</span>
+                    <span>۱۵ (شناخت نسبی)</span>
+                    <span>۳۰ (شناخت عمیق و توصیف دقیق)</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    وجود رابطه اعتمادآمیز؛ مراجعه یا رجوع واقعی دانش‌آموزان برای مشورت و گفت‌وگو (۰ تا ۲۰)
-                  </label>
+                {/* شاخص ۱-۲ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      وجود رابطه اعتمادآمیز؛ مراجعه یا رجوع واقعی دانش‌آموزان برای مشورت و گفت‌وگو
+                    </span>
+                    <span className="font-bold text-indigo-600 shrink-0 mr-2">{a1_2} از ۲۰</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis1_2"
-                    min={0}
-                    max={20}
+                    min="0"
+                    max="20"
                     value={a1_2}
                     onChange={(e) => setA1_2(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-indigo-600 cursor-pointer"
                   />
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    احترام به تفاوت‌های فردی و پرهیز از تحقیر، برچسب‌زنی و مقایسه مخرب (۰ تا ۲۰)
-                  </label>
-                  <input
-                    type="number"
-                    name="scoreAxis1_3"
-                    min={0}
-                    max={20}
-                    value={a1_3}
-                    onChange={(e) => setA1_3(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    توان اثرگذاری و ایجاد انگیزه بدون تحمیل نظر یا وابسته کردن دانش‌آموز (۰ تا ۳۰)
-                  </label>
-                  <input
-                    type="number"
-                    name="scoreAxis1_4"
-                    min={0}
-                    max={30}
-                    value={a1_4}
-                    onChange={(e) => setA1_4(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
-                    نظر کیفی ارزیاب در محور ۱:
-                  </label>
-                  <select
-                    name="qualitativeAxis1"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"
-                  >
-                    <option value="ارتباط تربیتی عمیق و قابل اتکا">ارتباط تربیتی عمیق و قابل اتکا</option>
-                    <option value="ارتباط مناسب اما محدود">ارتباط مناسب اما محدود</option>
-                    <option value="ارتباط عمدتاً رسمی و آموزشی">ارتباط عمدتاً رسمی و آموزشی</option>
-                    <option value="ارتباط کم‌اثر یا نامتناسب">ارتباط کم‌اثر یا نامتناسب</option>
-                  </select>
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (رابطه صرفاً رسمی)</span>
+                    <span>۱۰ (مراجعات موردی)</span>
+                    <span>۲۰ (مراجعات پرتکرار و اعتماد کامل)</span>
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
-                    توضیحات و مصادیق ارزیاب:
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    نظر ارزیاب در خصوص محور ۱ (شواهد، مصادیق و توضیحات):
                   </label>
-                  <input
-                    type="text"
+                  <textarea
                     name="notesAxis1"
-                    placeholder="شواهد عینی از رابطه با دانش‌آموزان..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"
-                  />
+                    rows={2}
+                    placeholder="شواهد مراجعات، رابطه تربیتی و نحوه تعامل معلم با دانش‌آموزان..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs sm:text-sm focus:bg-white focus:border-indigo-500 outline-none transition"
+                  ></textarea>
                 </div>
               </div>
             </div>
 
-            {/* محور ۲: توان شناسایی استعداد (وزن ۲۵٪) */}
-            <div className="space-y-4 pt-4 border-t border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center text-xs font-bold">
-                      ۲
+            <hr className="border-slate-100" />
+
+            {/* --- محور ۲ --- */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
+                    ۲
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                      توان شناسایی استعداد
+                    </h3>
+                    <span className="text-xs text-emerald-700 font-medium">
+                      وزن در امتیاز نهایی: ۲۵٪ | سقف نمره خام: ۸۰
                     </span>
-                    <span>توان شناسایی استعداد (وزن در نهایی: ۲۵٪)</span>
-                  </h2>
-                  <p className="text-[11px] text-slate-400 mt-0.5">در این محور مؤلفه پیگیری و ارجاع به متخصص حذف شده است.</p>
+                  </div>
                 </div>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl">
-                  جمع خام: {raw2} از ۱۰۰
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700">نمره خام:</span>
+                  <span className="px-2.5 py-1 rounded-xl bg-white border border-emerald-200 text-emerald-800 font-black text-sm">
+                    {raw2} <span className="text-slate-400 text-xs font-normal">/ ۸۰</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-emerald-50/40 border border-emerald-200/50 text-[11px] text-emerald-800">
+                💡 <strong>نکته مهم سند:</strong> در این محور فقط توان شناسایی سنجیده می‌شود؛ مؤلفه «همراهی، پیگیری و ارجاع به متخصص» حذف شده است.
+              </div>
+
+              {/* نشانگر توصیف کیفی محور ۲ */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">توصیف کیفی محور ۲:</span>
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-100/60 px-3 py-1 rounded-lg">
+                  {desc2}
                 </span>
               </div>
 
-              <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    تشخیص ظرفیت دانش‌آموز فراتر از معدل، رتبه و عملکرد ظاهری (۰ تا ۳۰)
-                  </label>
+              <div className="space-y-4 pt-2">
+                {/* شاخص ۲-۱ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      تشخیص ظرفیت دانش‌آموز فراتر از معدل، رتبه و عملکرد ظاهری
+                    </span>
+                    <span className="font-bold text-emerald-600 shrink-0 mr-2">{a2_1} از ۳۰</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis2_1"
-                    min={0}
-                    max={30}
+                    min="0"
+                    max="30"
                     value={a2_1}
                     onChange={(e) => setA2_1(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-emerald-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (صرفاً متکی به کارنامه و نمره)</span>
+                    <span>۱۵ (تشخیص نسبی علایق)</span>
+                    <span>۳۰ (تشخیص دقیق ظرفیت‌های پنهان)</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    ارائه شواهد عینی از رفتار، تولید، پرسش، تحلیل یا عملکرد متفاوت دانش‌آموز (۰ تا ۳۰)
-                  </label>
+                {/* شاخص ۲-۲ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      ارائه شواهد عینی از رفتار، تولید، پرسش، تحلیل یا عملکرد متفاوت دانش‌آموز
+                    </span>
+                    <span className="font-bold text-emerald-600 shrink-0 mr-2">{a2_2} از ۳۰</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis2_2"
-                    min={0}
-                    max={30}
+                    min="0"
+                    max="30"
                     value={a2_2}
                     onChange={(e) => setA2_2(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-emerald-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (فاقد شاهد عینی)</span>
+                    <span>۱۵ (شواهد کلی)</span>
+                    <span>۳۰ (شواهد دقیق و مستند ملموس)</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    توان تفکیک میان علاقه، استعداد، پشتکار و موفقیت فعلی (۰ تا ۲۰)
-                  </label>
+                {/* شاخص ۲-۳ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      توان تشخیص ظرفیت‌های مرتبط با علوم انسانی (تحلیل، استدلال، فهم اجتماعی، ارتباط، روایت‌گری یا مسئله‌شناسی)
+                    </span>
+                    <span className="font-bold text-emerald-600 shrink-0 mr-2">{a2_3} از ۲۰</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis2_3"
-                    min={0}
-                    max={20}
+                    min="0"
+                    max="20"
                     value={a2_3}
                     onChange={(e) => setA2_3(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-emerald-600 cursor-pointer"
                   />
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    توان تشخیص ظرفیت‌های مرتبط با علوم انسانی (تحلیل، استدلال، فهم اجتماعی، روایتگری، مسئله‌شناسی) (۰ تا ۲۰)
-                  </label>
-                  <input
-                    type="number"
-                    name="scoreAxis2_4"
-                    min={0}
-                    max={20}
-                    value={a2_4}
-                    onChange={(e) => setA2_4(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
-                  />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (عدم تمایز شایستگی‌ها)</span>
+                    <span>۱۰ (شناخت متوسط مؤلفه‌ها)</span>
+                    <span>۲۰ (تشخیص تخصصی مؤلفه‌های علوم انسانی)</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* محور ۳: نگرش و ظرفیت علوم انسانی (وزن ۱۵٪) */}
-            <div className="space-y-4 pt-4 border-t border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center text-xs font-bold">
-                      ۳
+            <hr className="border-slate-100" />
+
+            {/* --- محور ۳ --- */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-amber-50/70 p-4 rounded-2xl border border-amber-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold text-sm">
+                    ۳
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                      نگرش و ظرفیت علوم انسانی
+                    </h3>
+                    <span className="text-xs text-amber-700 font-medium">
+                      وزن در امتیاز نهایی: ۱۵٪ | سقف نمره خام: ۱۰۰
                     </span>
-                    <span>نگرش و ظرفیت علوم انسانی (وزن در نهایی: ۱۵٪)</span>
-                  </h2>
+                  </div>
                 </div>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl">
-                  جمع خام: {raw3} از ۱۰۰
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700">نمره خام:</span>
+                  <span className="px-2.5 py-1 rounded-xl bg-white border border-amber-200 text-amber-800 font-black text-sm">
+                    {raw3} <span className="text-slate-400 text-xs font-normal">/ ۱۰۰</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* نشانگر توصیف کیفی محور ۳ */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">توصیف کیفی محور ۳:</span>
+                <span className="text-xs font-bold text-amber-700 bg-amber-100/60 px-3 py-1 rounded-lg">
+                  {desc3}
                 </span>
               </div>
 
-              <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    باور به اهمیت علوم انسانی و پرهیز از نگاه درجه‌دو یا کلیشه‌ای به آن (۰ تا ۳۵)
-                  </label>
+              <div className="space-y-4 pt-2">
+                {/* شاخص ۳-۱ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      باور به اهمیت علوم انسانی و پرهیز از نگاه درجه‌دو یا کلیشه‌ای به آن
+                    </span>
+                    <span className="font-bold text-amber-600 shrink-0 mr-2">{a3_1} از ۳۵</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis3_1"
-                    min={0}
-                    max={35}
+                    min="0"
+                    max="35"
                     value={a3_1}
                     onChange={(e) => setA3_1(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-amber-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (نگاه درجه‌دو یا کلیشه‌ای)</span>
+                    <span>۱۸ (باور اولیه و احترام)</span>
+                    <span>۳۵ (باور عمیق و اصیل به تمدن‌سازی علوم انسانی)</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    شناخت اولیه و واقع‌بینانه از حوزه‌های اصلی علوم انسانی و تفاوت آنها (۰ تا ۳۵)
-                  </label>
+                {/* شاخص ۳-۲ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      شناخت اولیه و واقع‌بینانه از حوزه‌های اصلی علوم انسانی و تفاوت آنها
+                    </span>
+                    <span className="font-bold text-amber-600 shrink-0 mr-2">{a3_2} از ۳۵</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis3_2"
-                    min={0}
-                    max={35}
+                    min="0"
+                    max="35"
                     value={a3_2}
                     onChange={(e) => setA3_2(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-amber-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (کم‌اطلاع از رشته‌ها)</span>
+                    <span>۱۸ (شناخت عمومی)</span>
+                    <span>۳۵ (شناخت دقیق گرایش‌ها و ماهیت رشته‌ها)</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    توان پیوندزدن علوم انسانی با مسائل واقعی جامعه و ظرفیت‌های دانش‌آموزان (۰ تا ۳۰)
-                  </label>
+                {/* شاخص ۳-۳ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      توان پیوندزدن علوم انسانی با مسائل واقعی جامعه و ظرفیت‌های دانش‌آموزان
+                    </span>
+                    <span className="font-bold text-amber-600 shrink-0 mr-2">{a3_3} از ۳۰</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis3_3"
-                    min={0}
-                    max={30}
+                    min="0"
+                    max="30"
                     value={a3_3}
                     onChange={(e) => setA3_3(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-amber-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (صرفاً تئوریک و انتزاعی)</span>
+                    <span>۱۵ (پیوند موردی با مسائل)</span>
+                    <span>۳۰ (توان بالا در حل مسئله و انگیزش دانش‌آموزان)</span>
+                  </div>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
-                  سطح کیفی ارزیاب در محور ۳:
-                </label>
-                <select
-                  name="qualitativeAxis3"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"
-                >
-                  <option value="ظرفیت بالا برای نقش‌آفرینی در هدایت به علوم انسانی">ظرفیت بالا برای نقش‌آفرینی در هدایت به علوم انسانی</option>
-                  <option value="نگرش مثبت و ظرفیت قابل رشد">نگرش مثبت و ظرفیت قابل رشد</option>
-                  <option value="شناخت محدود؛ مناسب همکاری موردی">شناخت محدود؛ مناسب همکاری موردی</option>
-                  <option value="نگاه سطحی، منفی یا نامتناسب">نگاه سطحی، منفی یا نامتناسب</option>
-                </select>
               </div>
             </div>
 
-            {/* محور ۴: سرمایه ارتباطی و ظرفیت شبکه‌سازی (وزن ۲۵٪) */}
-            <div className="space-y-4 pt-4 border-t border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center text-xs font-bold">
-                      ۴
+            <hr className="border-slate-100" />
+
+            {/* --- محور ۴ --- */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-sky-50/70 p-4 rounded-2xl border border-sky-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm">
+                    ۴
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                      سرمایه ارتباطی و ظرفیت شبکه‌سازی
+                    </h3>
+                    <span className="text-xs text-sky-700 font-medium">
+                      وزن در امتیاز نهایی: ۲۵٪ | سقف نمره خام: ۱۰۰
                     </span>
-                    <span>سرمایه ارتباطی و ظرفیت شبکه‌سازی (وزن در نهایی: ۲۵٪)</span>
-                  </h2>
+                  </div>
                 </div>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl">
-                  جمع خام: {raw4} از ۱۰۰
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700">نمره خام:</span>
+                  <span className="px-2.5 py-1 rounded-xl bg-white border border-sky-200 text-sky-800 font-black text-sm">
+                    {raw4} <span className="text-slate-400 text-xs font-normal">/ ۱۰۰</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* نشانگر توصیف کیفی محور ۴ */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">توصیف کیفی محور ۴:</span>
+                <span className="text-xs font-bold text-sky-700 bg-sky-100/60 px-3 py-1 rounded-lg">
+                  {desc4}
                 </span>
               </div>
 
-              <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    دسترسی مؤثر به دانش‌آموزان و مدارس، به‌ویژه دانش‌آموزان مستعد (۰ تا ۳۵)
-                  </label>
+              <div className="space-y-4 pt-2">
+                {/* شاخص ۴-۱ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      دسترسی مؤثر به دانش‌آموزان و مدارس، به‌ویژه دانش‌آموزان مستعد
+                    </span>
+                    <span className="font-bold text-sky-600 shrink-0 mr-2">{a4_1} از ۳۵</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis4_1"
-                    min={0}
-                    max={35}
+                    min="0"
+                    max="35"
                     value={a4_1}
                     onChange={(e) => setA4_1(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-sky-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (دسترسی محدود)</span>
+                    <span>۱۸ (دسترسی به یک مدرسه)</span>
+                    <span>۳۵ (دسترسی گسترده به مدارس و مستعدین منطقه)</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    ارتباط حرفه‌ای و قابل اتکا با معلمان، مدیران، مشاوران یا فعالان تربیتی (۰ تا ۳۵)
-                  </label>
+                {/* شاخص ۴-۲ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      ارتباط حرفه‌ای و قابل اتکا با معلمان، مدیران، مشاوران یا فعالان تربیتی
+                    </span>
+                    <span className="font-bold text-sky-600 shrink-0 mr-2">{a4_2} از ۳۵</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis4_2"
-                    min={0}
-                    max={35}
+                    min="0"
+                    max="35"
                     value={a4_2}
                     onChange={(e) => setA4_2(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-sky-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (انزوا یا روابط تنش‌آلود)</span>
+                    <span>۱۸ (روابط کاری عادی)</span>
+                    <span>۳۵ (مورد وثوق و دارای ارتباطات موثر گسترده)</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    توان معرفی و همراه کردن افراد مناسب با یک برنامه مشترک (۰ تا ۳۰)
-                  </label>
+                {/* شاخص ۴-۳ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      توان معرفی و همراه‌کردن افراد مناسب با یک برنامه مشترک
+                    </span>
+                    <span className="font-bold text-sky-600 shrink-0 mr-2">{a4_3} از ۳۰</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis4_3"
-                    min={0}
-                    max={30}
+                    min="0"
+                    max="30"
                     value={a4_3}
                     onChange={(e) => setA4_3(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-sky-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (فاقد اثرگذاری تیمی)</span>
+                    <span>۱۵ (همراهی در حد معمول)</span>
+                    <span>۳۰ (نفوذ کلام و توان جذب و شبکه‌سازی بالا)</span>
+                  </div>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
-                  سطح کیفی ارزیاب در محور ۴:
-                </label>
-                <select
-                  name="qualitativeAxis4"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"
-                >
-                  <option value="دارای ظرفیت شبکه‌سازی و نقش‌آفرینی منطقه‌ای">دارای ظرفیت شبکه‌سازی و نقش‌آفرینی منطقه‌ای</option>
-                  <option value="دارای ارتباطات مناسب اما نیازمند تقویت">دارای ارتباطات مناسب اما نیازمند تقویت</option>
-                  <option value="دارای ارتباطات محدود؛ مناسب ارتباط موردی">دارای ارتباطات محدود؛ مناسب ارتباط موردی</option>
-                  <option value="فاقد ظرفیت شبکه‌ای قابل اتکا">فاقد ظرفیت شبکه‌ای قابل اتکا</option>
-                </select>
               </div>
             </div>
 
-            {/* محور ۵: تعهد و قابلیت همکاری اجرایی (وزن ۲۰٪) */}
-            <div className="space-y-4 pt-4 border-t border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center text-xs font-bold">
-                      ۵
+            <hr className="border-slate-100" />
+
+            {/* --- محور ۵ --- */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-rose-50/70 p-4 rounded-2xl border border-rose-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-sm">
+                    ۵
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                      تعهد و قابلیت همکاری اجرایی
+                    </h3>
+                    <span className="text-xs text-rose-700 font-medium">
+                      وزن در امتیاز نهایی: ۲۰٪ | سقف نمره خام: ۷۵
                     </span>
-                    <span>تعهد و قابلیت همکاری اجرایی (وزن در نهایی: ۲۰٪)</span>
-                  </h2>
+                  </div>
                 </div>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-xl">
-                  جمع خام: {raw5} از ۱۰۰
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700">نمره خام:</span>
+                  <span className="px-2.5 py-1 rounded-xl bg-white border border-rose-200 text-rose-800 font-black text-sm">
+                    {raw5} <span className="text-slate-400 text-xs font-normal">/ ۷۵</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* نشانگر توصیف کیفی محور ۵ */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">توصیف کیفی محور ۵:</span>
+                <span className="text-xs font-bold text-rose-700 bg-rose-100/60 px-3 py-1 rounded-lg">
+                  {desc5}
                 </span>
               </div>
 
-              <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    سابقه اجرای یک فعالیت تربیتی، آموزشی یا اجتماعی از آغاز تا پایان (۰ تا ۳۰)
-                  </label>
+              <div className="space-y-4 pt-2">
+                {/* شاخص ۵-۱ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      سابقه اجرای یک فعالیت تربیتی، آموزشی یا اجتماعی از آغاز تا پایان
+                    </span>
+                    <span className="font-bold text-rose-600 shrink-0 mr-2">{a5_1} از ۳۰</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis5_1"
-                    min={0}
-                    max={30}
+                    min="0"
+                    max="30"
                     value={a5_1}
                     onChange={(e) => setA5_1(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-rose-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (فاقد سابقه پروژه کامل)</span>
+                    <span>۱۵ (انجام کارهای محدود)</span>
+                    <span>۳۰ (سابقه پروژه‌های موفق از آغاز تا پایان)</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    داشتن زمان و امکان مشخص برای همکاری منظم (۰ تا ۲۰)
-                  </label>
+                {/* شاخص ۵-۲ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      داشتن زمان و امکان مشخص برای همکاری منظم
+                    </span>
+                    <span className="font-bold text-rose-600 shrink-0 mr-2">{a5_2} از ۲۰</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis5_2"
-                    min={0}
-                    max={20}
+                    min="0"
+                    max="20"
                     value={a5_2}
                     onChange={(e) => setA5_2(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-rose-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (بسیار پرمشغله و بدون وقت)</span>
+                    <span>۱۰ (امکان همکاری منعطف)</span>
+                    <span>۲۰ (تخصیص زمان مشخص و متعهدانه)</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    سابقه پیگیری، پاسخگویی و به‌انجام‌رساندن تعهدات (۰ تا ۲۵)
-                  </label>
+                {/* شاخص ۵-۳ */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
+                    <span className="text-slate-800 font-semibold">
+                      توان همکاری تیمی و پذیرش چارچوب، تقسیم کار و بازخورد
+                    </span>
+                    <span className="font-bold text-rose-600 shrink-0 mr-2">{a5_3} از ۲۵</span>
+                  </div>
                   <input
-                    type="number"
+                    type="range"
                     name="scoreAxis5_3"
-                    min={0}
-                    max={25}
+                    min="0"
+                    max="25"
                     value={a5_3}
                     onChange={(e) => setA5_3(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                    className="w-full accent-rose-600 cursor-pointer"
                   />
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>۰ (تک‌رو یا مقاومت در برابر بازخورد)</span>
+                    <span>۱۲ (همکاری متوسط)</span>
+                    <span>۲۵ (پذیرش کامل چارچوب و کار تیمی منسجم)</span>
+                  </div>
                 </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs text-slate-700 flex-1">
-                    توان همکاری تیمی و پذیرش چارچوب، تقسیم کار و بازخورد (۰ تا ۲۵)
-                  </label>
-                  <input
-                    type="number"
-                    name="scoreAxis5_4"
-                    min={0}
-                    max={25}
-                    value={a5_4}
-                    onChange={(e) => setA5_4(Number(e.target.value))}
-                    className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-center text-sm font-bold"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
-                  سطح کیفی ارزیاب در محور ۵:
-                </label>
-                <select
-                  name="qualitativeAxis5"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"
-                >
-                  <option value="آماده پذیرش نقش فعال و مستمر">آماده پذیرش نقش فعال و مستمر</option>
-                  <option value="قابل همکاری با حمایت و پیگیری">قابل همکاری با حمایت و پیگیری</option>
-                  <option value="مناسب فعالیت محدود یا موردی">مناسب فعالیت محدود یا موردی</option>
-                  <option value="فاقد امکان استمرار یا توان اجرایی کافی">فاقد امکان استمرار یا توان اجرایی کافی</option>
-                </select>
               </div>
             </div>
+          </div>
 
-            {/* جمع‌بندی نهایی */}
-            <div className="space-y-4 pt-4 border-t border-slate-200">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold">
-                  ✓
+          {/* سایدبار ثابت محاسبات و ثبت نهایی */}
+          <div className="w-full lg:w-96 space-y-6 shrink-0 lg:sticky lg:top-6">
+            <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-6 border border-slate-800">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <h3 className="font-bold text-base flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-400" />
+                  <span>محاسبه برخط امتیاز نهایی</span>
+                </h3>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-indigo-300 font-semibold">
+                  موزون از ۱۰۰
                 </span>
-                <span>جمع‌بندی نهایی و وضعیت همکاری</span>
-              </h2>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  وضعیت نهایی همکاری با معلم:
-                </label>
-                <select
-                  name="finalRecommendation"
-                  value={finalStatus}
-                  onChange={(e) => setFinalStatus(e.target.value)}
-                  className="w-full bg-emerald-50/50 border border-emerald-300 text-emerald-900 font-bold rounded-xl px-3.5 py-2.5 text-sm"
-                >
-                  <option value="DEVELOPMENTAL_RELATION">مستعد ارتباط رشدی (نخبه)</option>
-                  <option value="OCCASIONAL_RELATION">ارتباط موردی</option>
-                  <option value="UNSUITABLE">نامناسب همکاری</option>
-                </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  نظر تحلیلی و جمع‌بندی نهایی ارزیاب:
+              {/* نمایش نمره کل */}
+              <div className="text-center py-2">
+                <div className="text-5xl font-black tracking-tight text-white">
+                  {totalWeighted}
+                </div>
+                <div className="text-xs text-slate-400 mt-1">جمع نمرات موزون ۵ محور</div>
+              </div>
+
+              {/* ریز سهم اوزان محورها */}
+              <div className="space-y-2 text-xs border-y border-slate-800 py-4">
+                <div className="flex justify-between text-slate-300">
+                  <span>محور ۱ (وزن ۱۵٪):</span>
+                  <span className="font-bold">{weighted1.toFixed(1)} نمره</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>محور ۲ (وزن ۲۵٪):</span>
+                  <span className="font-bold">{weighted2.toFixed(1)} نمره</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>محور ۳ (وزن ۱۵٪):</span>
+                  <span className="font-bold">{weighted3.toFixed(1)} نمره</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>محور ۴ (وزن ۲۵٪):</span>
+                  <span className="font-bold">{weighted4.toFixed(1)} نمره</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>محور ۵ (وزن ۲۰٪):</span>
+                  <span className="font-bold">{weighted5.toFixed(1)} نمره</span>
+                </div>
+              </div>
+
+              {/* جعبه توصیف وضعیت نهایی */}
+              <div className="space-y-3">
+                <label className="block text-xs font-semibold text-slate-300">
+                  نتیجه و وضعیت همکاری نهایی:
+                </label>
+
+                <div className={`p-4 rounded-2xl border ${statusInfo.bg} space-y-1`}>
+                  <div className="flex items-center gap-2 font-bold text-sm">
+                    <span className={`w-2.5 h-2.5 rounded-full ${statusInfo.indicator}`}></span>
+                    <span>{statusInfo.title}</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed opacity-90">
+                    {statusInfo.desc}
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <label className="block text-[11px] text-slate-400 mb-1">
+                    امکان بازتنظیم دستی در صورت صلاحدید ارزیاب:
+                  </label>
+                  <select
+                    name="finalRecommendation"
+                    value={currentFinalStatus}
+                    onChange={(e) => setOverrideStatus(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                  >
+                    <option value="KEY_AXIS">محور (بالای ۸۰ درصد)</option>
+                    <option value="DEVELOPMENTAL_RELATION">مستعد ارتباط رشدی (۵۰ تا ۸۰ درصد)</option>
+                    <option value="OCCASIONAL_RELATION">ارتباط موردی (۳۰ تا ۵۰ درصد)</option>
+                    <option value="UNSUITABLE">نامناسب همکاری (زیر ۳۰ درصد)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* یادداشت جمع‌بندی */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-slate-300">
+                  جمع‌بندی نهایی و راهکارهای اقدام:
                 </label>
                 <textarea
                   name="finalNotes"
                   rows={3}
-                  placeholder="توضیحات تکمیلی پیرامون ظرفیت‌های اختصاصی، اولویت‌های ارتباطی و پیشنهاد برای گام‌های بعدی..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs leading-relaxed"
+                  placeholder="پیشنهاد نقش در شبکه، کارگاه‌های مورد نیاز، لیدری منطقه‌ای..."
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder:text-slate-500 outline-none"
                 ></textarea>
               </div>
-            </div>
 
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-              <Link
-                href="/evaluator"
-                className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-medium transition"
-              >
-                انصراف
-              </Link>
+              {/* دکمه ثبت */}
               <button
                 type="submit"
                 disabled={isPending}
-                className="px-7 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-bold shadow-lg shadow-emerald-600/20 transition cursor-pointer"
+                className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white text-sm font-bold shadow-lg shadow-indigo-600/30 transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
               >
-                {isPending ? "در حال ثبت ارزیابی..." : "ثبت قطعی فرم ارزیابی"}
+                {isPending ? (
+                  <span>در حال ذخیره‌سازی...</span>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>ثبت نهایی و صدور کارنامه معلم</span>
+                  </>
+                )}
               </button>
-            </div>
-          </form>
-        </div>
-
-        {/* سایدبار چسبان (Sticky) محاسبه آنلاین اوزان و نمره نهایی */}
-        <div className="w-full lg:w-80 shrink-0 sticky top-6 space-y-4">
-          <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-5 border border-slate-800">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <span className="text-xs font-semibold text-slate-400">محاسبه آنلاین نمره کل</span>
-              <Sparkles className="w-4 h-4 text-amber-400" />
-            </div>
-
-            <div className="text-center py-2">
-              <div className="text-4xl font-extrabold text-emerald-400 font-mono">
-                {totalWeighted}
-              </div>
-              <div className="text-xs text-slate-400 mt-1">امتیاز کل موزون از ۱۰۰</div>
-            </div>
-
-            <div className="space-y-3 pt-2 text-xs border-t border-slate-800">
-              <div className="flex justify-between items-center text-slate-300">
-                <span>۱. رابطه تربیتی (۱۵٪):</span>
-                <span className="font-mono text-emerald-400 font-bold">{raw1}</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>۲. توان استعدادیابی (۲۵٪):</span>
-                <span className="font-mono text-emerald-400 font-bold">{raw2}</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>۳. علوم انسانی (۱۵٪):</span>
-                <span className="font-mono text-emerald-400 font-bold">{raw3}</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>۴. شبکه‌سازی (۲۵٪):</span>
-                <span className="font-mono text-emerald-400 font-bold">{raw4}</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>۵. توان اجرایی (۲۰٪):</span>
-                <span className="font-mono text-emerald-400 font-bold">{raw5}</span>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/60 text-center space-y-1">
-              <div className="text-[11px] text-slate-400">پیشنهاد خودکار سیستم:</div>
-              <div className="text-xs font-bold text-amber-300">
-                {suggestedStatus === "DEVELOPMENTAL_RELATION"
-                  ? "مستعد ارتباط رشدی"
-                  : suggestedStatus === "OCCASIONAL_RELATION"
-                  ? "ارتباط موردی"
-                  : "نامناسب همکاری"}
-              </div>
             </div>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
