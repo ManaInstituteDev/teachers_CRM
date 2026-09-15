@@ -149,6 +149,20 @@ export default function EvaluationFormClient({
         <span>بازگشت به داشبورد ارزیاب</span>
       </Link>
 
+      {/* نوار شناور و چسبان زنده نمره و وضعیت برای گوشی موبایل */}
+      <div className="lg:hidden sticky top-14 z-20 -mx-4 px-4 py-2.5 bg-slate-900/90 backdrop-blur-md border-y border-slate-800 text-white flex items-center justify-between shadow-lg">
+        <div className="flex items-center gap-2">
+          <div className="text-[11px] text-slate-400">نمره کل:</div>
+          <div className="text-base font-black text-emerald-400 font-mono">
+            {totalWeighted} <span className="text-[10px] text-slate-400">/ ۱۰۰</span>
+          </div>
+        </div>
+        <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1.5 ${statusInfo.bg}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.indicator}`}></span>
+          <span>{statusInfo.title}</span>
+        </div>
+      </div>
+
       <form action={formAction}>
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* بخش اصلی فرم */}

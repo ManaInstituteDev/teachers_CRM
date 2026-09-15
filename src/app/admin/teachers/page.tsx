@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import SearchableEvaluatorSelect from "@/components/SearchableEvaluatorSelect";
+import { ExportDataButton } from "@/components/admin/ExportDataButton";
 import {
   GraduationCap,
   ArrowUpRight,
@@ -262,6 +263,42 @@ export default async function AdminTeachersPage({
     );
   };
 
+  const exportRows = teachers.map((t) => {
+    const ev = t.evaluations[0];
+    const statusLabel =
+      t.collaborationStatus === "KEY_AXIS"
+        ? "محور"
+        : t.collaborationStatus === "DEVELOPMENTAL_RELATION"
+        ? "مستعد ارتباط رشدی"
+        : t.collaborationStatus === "OCCASIONAL_RELATION"
+        ? "ارتباط موردی"
+        : t.collaborationStatus === "UNSUITABLE"
+        ? "نامناسب همکاری"
+        : "در انتظار ارزیابی";
+
+    return [
+      t.firstName,
+      t.lastName,
+      t.roleTitle || "معلم",
+      t.nationalCode || "-",
+      t.phone || "-",
+      t.school ? t.school.name : t.schoolNameManual || "-",
+      t.subject || "-",
+      t.grade || "-",
+      t.teachingYears ?? "-",
+      ev ? ev.totalWeightedScore : "-",
+      statusLabel,
+      ev ? ev.rawAxis1 : "-",
+      ev ? ev.rawAxis2 : "-",
+      ev ? ev.rawAxis3 : "-",
+      ev ? ev.rawAxis4 : "-",
+      ev ? ev.rawAxis5 : "-",
+      ev && ev.evaluator ? ev.evaluator.fullName : "-",
+      ev ? ev.dialogueDurationMin : "-",
+      ev ? new Date(ev.createdAt).toLocaleDateString("fa-IR") : "-",
+    ];
+  });
+
   return (
     <div className="p-4 sm:p-6 md:p-10 space-y-6">
       {/* هدر بخش */}
@@ -275,10 +312,37 @@ export default async function AdminTeachersPage({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-sm">
-            {teachers.length} معلم یافت شد
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span className="text-xs font-bold text-slate-600 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
+            {teachers.length} نفر یافت شد
           </span>
+
+          <ExportDataButton
+            filename="teachers_evaluation_report"
+            title="خروجی اطلاعات (اکسل)"
+            headers={[
+              "نام",
+              "نام خانوادگی",
+              "نقش در مدرسه",
+              "کد ملی",
+              "شماره تماس",
+              "مدرسه",
+              "رشته / درس",
+              "مقطع",
+              "سابقه تدریس (سال)",
+              "نمره کل وزنی (از ۱۰۰)",
+              "وضعیت همکاری",
+              "محور ۱ (اهداف و اسناد)",
+              "محور ۲ (صلاحیت‌ها)",
+              "محور ۳ (روش‌های تدریس)",
+              "محور ۴ (ابزارها و سنجش)",
+              "محور ۵ (انگیزه و هویت)",
+              "ارزیاب ثبت‌کننده",
+              "مدت مصاحبه (دقیقه)",
+              "تاریخ ارزیابی",
+            ]}
+            rows={exportRows}
+          />
         </div>
       </div>
 

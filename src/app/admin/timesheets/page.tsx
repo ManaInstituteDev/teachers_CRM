@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { deleteTimesheetAction } from "@/app/actions/timesheet";
 import SearchableEvaluatorSelect from "@/components/SearchableEvaluatorSelect";
+import { ExportDataButton } from "@/components/admin/ExportDataButton";
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +98,18 @@ export default async function AdminTimesheetsPage({
     };
   });
 
+  const timesheetExportRows = logs.map((log) => [
+    log.evaluator.fullName,
+    log.workerType === "ASSISTANT_EVALUATOR" && log.assistantEvaluator
+      ? log.assistantEvaluator.fullName
+      : log.evaluator.fullName,
+    log.workerType === "ASSISTANT_EVALUATOR" ? "کمک‌ارزیاب" : "ارزیاب سرپرست",
+    new Date(log.date).toLocaleDateString("fa-IR"),
+    log.durationMinutes,
+    (log.durationMinutes / 60).toFixed(1),
+    log.description || "-",
+  ]);
+
   return (
     <div className="p-4 sm:p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
       {/* هدر بخش */}
@@ -110,13 +123,30 @@ export default async function AdminTimesheetsPage({
           </p>
         </div>
 
-        <Link
-          href="/admin/evaluators/assistants"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold shadow-sm transition"
-        >
-          <Users className="w-4 h-4 text-sky-600" />
-          <span>تخصیص و مدیریت کمک‌ارزیاب‌ها</span>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <ExportDataButton
+            filename="timesheet_report"
+            title="خروجی اکسل ساعات"
+            headers={[
+              "ارزیاب سرپرست",
+              "شخص انجام‌دهنده",
+              "نوع نیرو",
+              "تاریخ",
+              "مدت (دقیقه)",
+              "مدت (ساعت)",
+              "شرح فعالیت",
+            ]}
+            rows={timesheetExportRows}
+          />
+
+          <Link
+            href="/admin/evaluators/assistants"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold shadow-sm transition"
+          >
+            <Users className="w-4 h-4 text-sky-600" />
+            <span>مدیریت کمک‌ارزیاب‌ها</span>
+          </Link>
+        </div>
       </div>
 
       {/* کارت‌های خلاصه آماری ساعات */}

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { UserPlus, Users } from "lucide-react";
 import EvaluatorsTableClient from "./EvaluatorsTableClient";
+import { ExportDataButton } from "@/components/admin/ExportDataButton";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,22 @@ export default async function EvaluatorsListPage() {
 
   const totalAssistants = await prisma.assistantEvaluator.count();
 
+  const evaluatorExportRows = evaluators.map((ev) => {
+    const totalMinutes = ev.timesheets.reduce((acc, t) => acc + t.durationMinutes, 0);
+    const assistantsNames = ev.assistants.map((a) => a.fullName).join("، ") || "ندارد";
+
+    return [
+      ev.fullName,
+      ev.username,
+      ev.phone || "-",
+      ev.assistants.length,
+      assistantsNames,
+      ev._count.teacherEvaluations,
+      (totalMinutes / 60).toFixed(1),
+      ev.isActive ? "فعال" : "غیرفعال",
+    ];
+  });
+
   return (
     <div className="p-4 sm:p-6 md:p-10 space-y-6">
       {/* هدر بخش */}
@@ -41,18 +58,34 @@ export default async function EvaluatorsListPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <ExportDataButton
+            filename="evaluators_list_report"
+            title="خروجی اکسل ارزیابان"
+            headers={[
+              "نام و نام خانوادگی",
+              "نام کاربری",
+              "شماره تماس",
+              "تعداد کمکیاران",
+              "اسامی کمکیاران متصل",
+              "تعداد ارزیابی‌های ثبت‌شده",
+              "مجموع ساعت کارکرد",
+              "وضعیت",
+            ]}
+            rows={evaluatorExportRows}
+          />
+
           <Link
             href="/admin/evaluators/assistants"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold shadow-sm transition"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold shadow-sm transition"
           >
             <Users className="w-4 h-4 text-sky-600" />
-            <span>مدیریت کمک‌ارزیاب‌ها ({totalAssistants})</span>
+            <span>کمک‌ارزیاب‌ها ({totalAssistants})</span>
           </Link>
 
           <Link
             href="/admin/evaluators/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 transition"
           >
             <UserPlus className="w-4 h-4" />
             <span>تعریف ارزیاب جدید</span>

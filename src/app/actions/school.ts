@@ -114,10 +114,57 @@ export async function createBasicSchoolAction(prevState: any, formData: FormData
     revalidatePath("/evaluator/schools");
     redirect("/admin/schools");
   } catch (err: any) {
+    if (err.message === "NEXT_REDIRECT") {
+      throw err;
+    }
     if (err.code === "P2002") {
       return { error: "کد مدرسه وارد شده قبلاً در سیستم ثبت شده است." };
     }
     return { error: "خطا در ثبت مدرسه: " + (err.message || "مجدداً تلاش کنید.") };
+  }
+}
+
+export async function updateSchoolEvaluationAction(prevState: any, formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: "لطفاً مجدداً وارد سامانه شوید." };
+  }
+
+  const schoolId = formData.get("schoolId") as string;
+  if (!schoolId) {
+    return { error: "شناسه مدرسه مشخص نشده است." };
+  }
+
+  const dominantApproach = (formData.get("dominantApproach") as SchoolDominantApproach) || "EDUCATIONAL_CULTURAL";
+  const approachEvidence = formData.get("approachEvidence") as string;
+  const humanitiesAttitude = (formData.get("humanitiesAttitude") as HumanitiesAttitude) || null;
+  const humanitiesReadinessLevel = formData.get("humanitiesReadinessLevel") as string;
+  const humanitiesActivities = formData.getAll("humanitiesActivities") as string[];
+  const studentCapacities = formData.getAll("studentCapacities") as string[];
+
+  try {
+    await prisma.school.update({
+      where: { id: schoolId },
+      data: {
+        dominantApproach,
+        approachEvidence: approachEvidence ? approachEvidence.trim() : null,
+        humanitiesAttitude,
+        humanitiesActivities,
+        studentCapacities,
+        humanitiesReadinessLevel: humanitiesReadinessLevel ? humanitiesReadinessLevel.trim() : null,
+      },
+    });
+
+    revalidatePath("/evaluator/schools");
+    revalidatePath(`/evaluator/schools/${schoolId}`);
+    revalidatePath(`/admin/schools/${schoolId}`);
+    revalidatePath("/admin/schools");
+    redirect(`/evaluator/schools/${schoolId}`);
+  } catch (err: any) {
+    if (err.message === "NEXT_REDIRECT") {
+      throw err;
+    }
+    return { error: "خطا در ذخیره ارزیابی مدرسه: " + (err.message || "مجدداً تلاش کنید.") };
   }
 }
 
