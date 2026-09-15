@@ -171,7 +171,7 @@ async function main() {
           scoreAxis2_2: 28,
           scoreAxis2_3: 18,
           rawAxis2: 74,
-          qualitativeAxis2: "توان بسیار بالا در شناسایی استعداد فراتر از نمره",
+          qualitativeAxis2: "توانمند در شناسایی و هدایت استعداد",
 
           // محور ۳: نگرش علوم انسانی (سقف ۱۰۰ - نمره: ۹۵)
           scoreAxis3_1: 34,
@@ -235,7 +235,7 @@ async function main() {
           scoreAxis2_2: 20,
           scoreAxis2_3: 16,
           rawAxis2: 58,
-          qualitativeAxis2: "توان مناسب و قابل اتکا در شناسایی استعداد",
+          qualitativeAxis2: "دارای ظرفیت مناسب، نیازمند توانمندسازی بیشتر",
 
           // محور ۳: ۷۲ از ۱۰۰
           scoreAxis3_1: 28,
@@ -298,7 +298,7 @@ async function main() {
           scoreAxis2_2: 10,
           scoreAxis2_3: 8,
           rawAxis2: 30,
-          qualitativeAxis2: "شناسایی محدود و نیازمند شواهد تکمیلی",
+          qualitativeAxis2: "مناسب معرفی موردی دانش‌آموز",
 
           // محور ۳: ۴۵ از ۱۰۰
           scoreAxis3_1: 16,
@@ -361,7 +361,7 @@ async function main() {
           scoreAxis2_2: 5,
           scoreAxis2_3: 4,
           rawAxis2: 15,
-          qualitativeAxis2: "فاقد توان تشخیص و شواهد عینی استعداد",
+          qualitativeAxis2: "فاقد توان کافی برای هدایت استعداد",
 
           // محور ۳: ۲۲ از ۱۰۰
           scoreAxis3_1: 8,

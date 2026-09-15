@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import SearchableEvaluatorSelect from "@/components/SearchableEvaluatorSelect";
 import { ExportDataButton } from "@/components/admin/ExportDataButton";
+import { AxisQualitativeFilter } from "@/components/admin/AxisQualitativeFilter";
 import {
   GraduationCap,
   ArrowUpRight,
@@ -19,6 +20,7 @@ import {
   School as SchoolIcon,
   X,
   Briefcase,
+  Sparkles,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +40,8 @@ interface SearchParamsProps {
   minAxis3?: string;
   minAxis4?: string;
   minAxis5?: string;
+  axisFilter?: string;
+  qualitativeFilter?: string;
 }
 
 export default async function AdminTeachersPage({
@@ -61,6 +65,10 @@ export default async function AdminTeachersPage({
   const minAxis3 = params.minAxis3 ? parseInt(params.minAxis3, 10) : null;
   const minAxis4 = params.minAxis4 ? parseInt(params.minAxis4, 10) : null;
   const minAxis5 = params.minAxis5 ? parseInt(params.minAxis5, 10) : null;
+
+  // فیلتر توصیف کیفی در محور انتخابی
+  const axisFilter = params.axisFilter || "";
+  const qualitativeFilter = params.qualitativeFilter || "";
 
   // دریافت لیست ارزیاب‌ها جهت دراپ‌داون فیلتر با پشتیبانی از سرچ
   const evaluators = await prisma.user.findMany({
@@ -108,6 +116,46 @@ export default async function AdminTeachersPage({
   if (minAxis3 !== null) evaluationFilters.rawAxis3 = { gte: minAxis3 };
   if (minAxis4 !== null) evaluationFilters.rawAxis4 = { gte: minAxis4 };
   if (minAxis5 !== null) evaluationFilters.rawAxis5 = { gte: minAxis5 };
+
+  // اعمال فیلتر بر اساس توصیف کیفی در محور انتخاب‌شده
+  if (axisFilter && qualitativeFilter) {
+    const axisNum = parseInt(axisFilter, 10);
+    switch (axisNum) {
+      case 1:
+        evaluationFilters.qualitativeAxis1 = qualitativeFilter;
+        break;
+      case 2:
+        if (qualitativeFilter === "توانمند در شناسایی و هدایت استعداد") {
+          evaluationFilters.qualitativeAxis2 = {
+            in: ["توانمند در شناسایی و هدایت استعداد", "توان بسیار بالا در شناسایی استعداد فراتر از نمره"],
+          };
+        } else if (qualitativeFilter === "دارای ظرفیت مناسب، نیازمند توانمندسازی بیشتر") {
+          evaluationFilters.qualitativeAxis2 = {
+            in: ["دارای ظرفیت مناسب، نیازمند توانمندسازی بیشتر", "توان مناسب و قابل اتکا در شناسایی استعداد"],
+          };
+        } else if (qualitativeFilter === "مناسب معرفی موردی دانش‌آموز") {
+          evaluationFilters.qualitativeAxis2 = {
+            in: ["مناسب معرفی موردی دانش‌آموز", "شناسایی محدود و نیازمند شواهد تکمیلی"],
+          };
+        } else if (qualitativeFilter === "فاقد توان کافی برای هدایت استعداد") {
+          evaluationFilters.qualitativeAxis2 = {
+            in: ["فاقد توان کافی برای هدایت استعداد", "فاقد توان تشخیص و شواهد عینی استعداد"],
+          };
+        } else {
+          evaluationFilters.qualitativeAxis2 = qualitativeFilter;
+        }
+        break;
+      case 3:
+        evaluationFilters.qualitativeAxis3 = qualitativeFilter;
+        break;
+      case 4:
+        evaluationFilters.qualitativeAxis4 = qualitativeFilter;
+        break;
+      case 5:
+        evaluationFilters.qualitativeAxis5 = qualitativeFilter;
+        break;
+    }
+  }
 
   if (Object.keys(evaluationFilters).length > 0) {
     whereClause.evaluations = {
@@ -246,6 +294,8 @@ export default async function AdminTeachersPage({
     if (minAxis3 !== null) currentParams.set("minAxis3", String(minAxis3));
     if (minAxis4 !== null) currentParams.set("minAxis4", String(minAxis4));
     if (minAxis5 !== null) currentParams.set("minAxis5", String(minAxis5));
+    if (axisFilter) currentParams.set("axisFilter", axisFilter);
+    if (qualitativeFilter) currentParams.set("qualitativeFilter", qualitativeFilter);
 
     currentParams.set("sortBy", field);
     currentParams.set("sortOrder", nextOrder);
@@ -538,15 +588,46 @@ export default async function AdminTeachersPage({
               </div>
             </div>
           </div>
+
+          {/* فیلتر پویا بر اساس توصیف کیفی در محور انتخابی */}
+          <AxisQualitativeFilter
+            initialAxis={axisFilter}
+            initialQualitative={qualitativeFilter}
+          />
         </form>
 
-        {/* برچسب‌های فیلترهای سریع وضعیت */}
-        <div className="flex items-center gap-2 overflow-x-auto pt-2 border-t border-slate-100">
+        {/* برچسب‌های فیلترهای سریع وضعیت و فیلتر فعال توصیفی */}
+        <div className="flex flex-wrap items-center gap-2 overflow-x-auto pt-2 border-t border-slate-100">
           <span className="text-xs text-slate-400 shrink-0">فیلتر سریع:</span>
+
+          {axisFilter && qualitativeFilter && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-bold shrink-0">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <span>محور {axisFilter}:</span>
+              <span className="text-indigo-700">«{qualitativeFilter}»</span>
+              <Link
+                href={`/admin/teachers?${(() => {
+                  const p = new URLSearchParams();
+                  if (q) p.set("q", q);
+                  if (status !== "ALL") p.set("status", status);
+                  if (evaluatorId !== "ALL") p.set("evaluatorId", evaluatorId);
+                  if (roleTitle !== "ALL") p.set("roleTitle", roleTitle);
+                  if (sortBy) p.set("sortBy", sortBy);
+                  if (sortOrder) p.set("sortOrder", sortOrder);
+                  return p.toString();
+                })()}`}
+                className="text-rose-500 hover:text-rose-700 mr-1 p-0.5 rounded hover:bg-rose-100"
+                title="حذف فیلتر توصیفی"
+              >
+                <X className="w-3 h-3" />
+              </Link>
+            </div>
+          )}
+
           <Link
             href="/admin/teachers"
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 ${
-              status === "ALL"
+              status === "ALL" && !axisFilter
                 ? "bg-slate-900 text-white shadow-sm"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
@@ -616,35 +697,35 @@ export default async function AdminTeachersPage({
                 <th className="py-4 px-5">مدرسه محل خدمت</th>
 
                 {/* سرستون‌های سورت‌شونده محورها */}
-                <th className="py-4 px-3 text-center">
+                <th className={`py-4 px-3 text-center ${axisFilter === "1" ? "bg-indigo-100/80 text-indigo-900 ring-1 ring-indigo-400" : ""}`}>
                   <Link href={getSortUrl("axis1")} className="hover:text-indigo-600 inline-flex items-center" title="محور ۱: رابطه تربیتی (سقف ۵۰)">
                     <span>م ۱</span>
                     {renderSortIndicator("axis1")}
                   </Link>
                 </th>
 
-                <th className="py-4 px-3 text-center">
-                  <Link href={getSortUrl("axis2")} className="hover:text-indigo-600 inline-flex items-center" title="محور ۲: شناسایی استعداد (سقف ۸۰)">
+                <th className={`py-4 px-3 text-center ${axisFilter === "2" ? "bg-emerald-100/80 text-emerald-900 ring-1 ring-emerald-400" : ""}`}>
+                  <Link href={getSortUrl("axis2")} className="hover:text-indigo-600 inline-flex items-center" title="محور ۲: توان شناسایی استعداد (سقف ۸۰)">
                     <span>م ۲</span>
                     {renderSortIndicator("axis2")}
                   </Link>
                 </th>
 
-                <th className="py-4 px-3 text-center">
+                <th className={`py-4 px-3 text-center ${axisFilter === "3" ? "bg-indigo-100/80 text-indigo-900 ring-1 ring-indigo-400" : ""}`}>
                   <Link href={getSortUrl("axis3")} className="hover:text-indigo-600 inline-flex items-center" title="محور ۳: نگرش علوم انسانی (سقف ۱۰۰)">
                     <span>م ۳</span>
                     {renderSortIndicator("axis3")}
                   </Link>
                 </th>
 
-                <th className="py-4 px-3 text-center">
+                <th className={`py-4 px-3 text-center ${axisFilter === "4" ? "bg-indigo-100/80 text-indigo-900 ring-1 ring-indigo-400" : ""}`}>
                   <Link href={getSortUrl("axis4")} className="hover:text-indigo-600 inline-flex items-center" title="محور ۴: سرمایه ارتباطی (سقف ۱۰۰)">
                     <span>م ۴</span>
                     {renderSortIndicator("axis4")}
                   </Link>
                 </th>
 
-                <th className="py-4 px-3 text-center">
+                <th className={`py-4 px-3 text-center ${axisFilter === "5" ? "bg-indigo-100/80 text-indigo-900 ring-1 ring-indigo-400" : ""}`}>
                   <Link href={getSortUrl("axis5")} className="hover:text-indigo-600 inline-flex items-center" title="محور ۵: تعهد و همکاری (سقف ۷۵)">
                     <span>م ۵</span>
                     {renderSortIndicator("axis5")}
@@ -707,57 +788,92 @@ export default async function AdminTeachersPage({
                         {teacher.school?.name || teacher.schoolNameManual || "نامشخص"}
                       </td>
 
-                      {/* نمرات تفکیکی ۵ محور */}
-                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                      {/* نمرات تفکیکی ۵ محور با نمایش توصیف کیفی */}
+                      <td className={`py-4 px-3 text-center whitespace-nowrap ${axisFilter === "1" ? "bg-indigo-50/50" : ""}`}>
                         {latestEval ? (
-                          <span className="font-bold text-xs text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md" title={`توصیف: ${latestEval.qualitativeAxis1 || '—'}`}>
-                            {latestEval.rawAxis1}
-                            <span className="text-[10px] text-slate-400 font-normal">/۵۰</span>
-                          </span>
+                          <div>
+                            <span className="font-bold text-xs text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md" title={`توصیف: ${latestEval.qualitativeAxis1 || '—'}`}>
+                              {latestEval.rawAxis1}
+                              <span className="text-[10px] text-slate-400 font-normal">/۵۰</span>
+                            </span>
+                            {axisFilter === "1" && latestEval.qualitativeAxis1 && (
+                              <div className="text-[10px] text-indigo-800 font-semibold mt-1 bg-indigo-100/60 px-1.5 py-0.5 rounded max-w-[130px] mx-auto truncate" title={latestEval.qualitativeAxis1}>
+                                {latestEval.qualitativeAxis1}
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           "—"
                         )}
                       </td>
 
-                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                      <td className={`py-4 px-3 text-center whitespace-nowrap ${axisFilter === "2" ? "bg-emerald-50/50" : ""}`}>
                         {latestEval ? (
-                          <span className="font-bold text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md" title={`توصیف: ${latestEval.qualitativeAxis2 || '—'}`}>
-                            {latestEval.rawAxis2}
-                            <span className="text-[10px] text-slate-400 font-normal">/۸۰</span>
-                          </span>
+                          <div>
+                            <span className="font-bold text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md" title={`توصیف: ${latestEval.qualitativeAxis2 || '—'}`}>
+                              {latestEval.rawAxis2}
+                              <span className="text-[10px] text-slate-400 font-normal">/۸۰</span>
+                            </span>
+                            {(axisFilter === "2" || qualitativeFilter) && latestEval.qualitativeAxis2 && (
+                              <div className="text-[10px] text-emerald-800 font-semibold mt-1 bg-emerald-100/70 px-1.5 py-0.5 rounded max-w-[150px] mx-auto truncate" title={latestEval.qualitativeAxis2}>
+                                {latestEval.qualitativeAxis2}
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           "—"
                         )}
                       </td>
 
-                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                      <td className={`py-4 px-3 text-center whitespace-nowrap ${axisFilter === "3" ? "bg-amber-50/50" : ""}`}>
                         {latestEval ? (
-                          <span className="font-bold text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md" title={`توصیف: ${latestEval.qualitativeAxis3 || '—'}`}>
-                            {latestEval.rawAxis3}
-                            <span className="text-[10px] text-slate-400 font-normal">/۱۰۰</span>
-                          </span>
+                          <div>
+                            <span className="font-bold text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md" title={`توصیف: ${latestEval.qualitativeAxis3 || '—'}`}>
+                              {latestEval.rawAxis3}
+                              <span className="text-[10px] text-slate-400 font-normal">/۱۰۰</span>
+                            </span>
+                            {axisFilter === "3" && latestEval.qualitativeAxis3 && (
+                              <div className="text-[10px] text-amber-800 font-semibold mt-1 bg-amber-100/60 px-1.5 py-0.5 rounded max-w-[130px] mx-auto truncate" title={latestEval.qualitativeAxis3}>
+                                {latestEval.qualitativeAxis3}
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           "—"
                         )}
                       </td>
 
-                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                      <td className={`py-4 px-3 text-center whitespace-nowrap ${axisFilter === "4" ? "bg-sky-50/50" : ""}`}>
                         {latestEval ? (
-                          <span className="font-bold text-xs text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md" title={`توصیف: ${latestEval.qualitativeAxis4 || '—'}`}>
-                            {latestEval.rawAxis4}
-                            <span className="text-[10px] text-slate-400 font-normal">/۱۰۰</span>
-                          </span>
+                          <div>
+                            <span className="font-bold text-xs text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md" title={`توصیف: ${latestEval.qualitativeAxis4 || '—'}`}>
+                              {latestEval.rawAxis4}
+                              <span className="text-[10px] text-slate-400 font-normal">/۱۰۰</span>
+                            </span>
+                            {axisFilter === "4" && latestEval.qualitativeAxis4 && (
+                              <div className="text-[10px] text-sky-800 font-semibold mt-1 bg-sky-100/60 px-1.5 py-0.5 rounded max-w-[130px] mx-auto truncate" title={latestEval.qualitativeAxis4}>
+                                {latestEval.qualitativeAxis4}
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           "—"
                         )}
                       </td>
 
-                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                      <td className={`py-4 px-3 text-center whitespace-nowrap ${axisFilter === "5" ? "bg-rose-50/50" : ""}`}>
                         {latestEval ? (
-                          <span className="font-bold text-xs text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md" title={`توصیف: ${latestEval.qualitativeAxis5 || '—'}`}>
-                            {latestEval.rawAxis5}
-                            <span className="text-[10px] text-slate-400 font-normal">/۷۵</span>
-                          </span>
+                          <div>
+                            <span className="font-bold text-xs text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md" title={`توصیف: ${latestEval.qualitativeAxis5 || '—'}`}>
+                              {latestEval.rawAxis5}
+                              <span className="text-[10px] text-slate-400 font-normal">/۷۵</span>
+                            </span>
+                            {axisFilter === "5" && latestEval.qualitativeAxis5 && (
+                              <div className="text-[10px] text-rose-800 font-semibold mt-1 bg-rose-100/60 px-1.5 py-0.5 rounded max-w-[130px] mx-auto truncate" title={latestEval.qualitativeAxis5}>
+                                {latestEval.qualitativeAxis5}
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           "—"
                         )}
