@@ -5,11 +5,17 @@ import EvaluationFormClient from "./EvaluationFormClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function EvaluatorEvaluatePage() {
+export default async function EvaluatorEvaluatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ schoolId?: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
   }
+
+  const { schoolId } = await searchParams;
 
   // دریافت لیست مدارس برای سلکت‌باکس
   const schools = await prisma.school.findMany({
@@ -21,5 +27,5 @@ export default async function EvaluatorEvaluatePage() {
     orderBy: { name: "asc" },
   });
 
-  return <EvaluationFormClient schools={schools} />;
+  return <EvaluationFormClient schools={schools} initialSchoolId={schoolId} />;
 }

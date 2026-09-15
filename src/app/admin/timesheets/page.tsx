@@ -13,6 +13,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { deleteTimesheetAction } from "@/app/actions/timesheet";
+import SearchableEvaluatorSelect from "@/components/SearchableEvaluatorSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export default async function AdminTimesheetsPage({
 
   const evaluators = await prisma.user.findMany({
     where: { role: "EVALUATOR" },
-    select: { id: true, fullName: true },
+    select: { id: true, fullName: true, username: true },
     orderBy: { fullName: "asc" },
   });
 
@@ -232,18 +233,14 @@ export default async function AdminTimesheetsPage({
           </div>
 
           <form method="GET" action="/admin/timesheets" className="flex items-center gap-2 flex-wrap">
-            <select
-              name="evaluatorId"
-              defaultValue={evaluatorId || "ALL"}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 outline-none"
-            >
-              <option value="ALL">همه ارزیاب‌ها</option>
-              {evaluators.map((ev) => (
-                <option key={ev.id} value={ev.id}>
-                  {ev.fullName}
-                </option>
-              ))}
-            </select>
+            <div className="w-56">
+              <SearchableEvaluatorSelect
+                evaluators={evaluators}
+                defaultValue={evaluatorId || "ALL"}
+                name="evaluatorId"
+                placeholder="جستجوی ارزیاب..."
+              />
+            </div>
 
             <select
               name="workerType"

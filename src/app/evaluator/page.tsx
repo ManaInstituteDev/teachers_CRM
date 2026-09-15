@@ -71,25 +71,45 @@ export default async function EvaluatorDashboardPage() {
       </div>
 
       {/* عملیات‌های سریع */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link
-          href="/evaluator/evaluate"
+          href="/evaluator/schools"
           className="group p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition flex items-center justify-between"
         >
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
-              <ClipboardPenLine className="w-6 h-6" />
+              <School className="w-6 h-6" />
             </div>
             <div>
               <h3 className="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition">
-                ثبت ارزیابی معلم
+                مدارس و کادر آموزشی
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                فرم ۵ محوره سند
+                انتخاب مدرسه و ثبت کادر
               </p>
             </div>
           </div>
           <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
+        </Link>
+
+        <Link
+          href="/evaluator/evaluate"
+          className="group p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-300 transition flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
+              <ClipboardPenLine className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-slate-900 group-hover:text-indigo-700 transition">
+                ارزیابی فرد جدید
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                معلم، مشاور، معاون
+              </p>
+            </div>
+          </div>
+          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
         </Link>
 
         <Link

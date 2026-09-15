@@ -105,7 +105,12 @@ export default async function MyEvaluationsPage() {
                 evaluations.map((ev) => (
                   <tr key={ev.id} className="hover:bg-slate-50/50 transition">
                     <td className="py-4 px-6 font-semibold text-slate-900">
-                      {ev.teacher.firstName} {ev.teacher.lastName}
+                      <div className="flex items-center gap-2">
+                        <span>{ev.teacher.firstName} {ev.teacher.lastName}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          {ev.teacher.roleTitle || "معلم"}
+                        </span>
+                      </div>
                     </td>
                     <td className="py-4 px-6 text-slate-600 text-xs">
                       {ev.teacher.subject} ({ev.teacher.grade})

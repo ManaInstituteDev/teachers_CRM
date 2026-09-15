@@ -20,6 +20,9 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
   const phone = formData.get("phone") as string;
   const nationalCode = formData.get("nationalCode") as string;
   const teachingYears = parseInt((formData.get("teachingYears") as string) || "0", 10);
+  const roleTitleInput = ((formData.get("roleTitle") as string) || "معلم").trim();
+  const roleTitleCustom = ((formData.get("roleTitleCustom") as string) || "").trim();
+  const roleTitle = (roleTitleInput === "سایر" && roleTitleCustom ? roleTitleCustom : roleTitleInput) || "معلم";
   const subject = formData.get("subject") as string;
   const grade = formData.get("grade") as string;
   const schoolId = formData.get("schoolId") as string;
@@ -27,7 +30,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
   const bio = formData.get("bio") as string;
 
   if (!teacherId && (!firstName || !lastName || !subject || !grade)) {
-    return { error: "لطفاً اطلاعات هویتی، رشته و مقطع تدریس معلم را کامل کنید." };
+    return { error: "لطفاً اطلاعات هویتی، رشته و مقطع تدریس یا فعالیت را کامل کنید." };
   }
 
   // ۲. متادیتای ارزیابی
@@ -69,14 +72,14 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
   const rawAxis5 = scoreAxis5_1 + scoreAxis5_2 + scoreAxis5_3;
   const qualitativeAxis5 = calculateAxisQualitative(5, rawAxis5);
 
-  // ۸. محاسبه نمره کل موزون از ۱۰۰ بر پایه اوزان دقیق سند
+  // ۸. محاسبه نمره موزون کل (از ۱۰۰ نمره)
   const weighted1 = (rawAxis1 / 50) * 15;
   const weighted2 = (rawAxis2 / 80) * 25;
   const weighted3 = (rawAxis3 / 100) * 15;
   const weighted4 = (rawAxis4 / 100) * 25;
   const weighted5 = (rawAxis5 / 75) * 20;
 
-  const totalWeightedScore = Number(
+  const totalWeightedScore = parseFloat(
     (weighted1 + weighted2 + weighted3 + weighted4 + weighted5).toFixed(2)
   );
 
@@ -88,7 +91,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
     let activeTeacherId = teacherId;
 
     if (!activeTeacherId) {
-      // ایجاد معلم جدید
+      // ایجاد فرد جدید (معلم، مشاور، معاون، ...)
       const newTeacher = await prisma.teacher.create({
         data: {
           firstName: firstName.trim(),
@@ -96,6 +99,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
           phone: phone ? phone.trim() : null,
           nationalCode: nationalCode ? nationalCode.trim() : null,
           teachingYears,
+          roleTitle: roleTitle || "معلم",
           subject: subject.trim(),
           grade: grade.trim(),
           schoolId: schoolId || null,
@@ -106,11 +110,12 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
       });
       activeTeacherId = newTeacher.id;
     } else {
-      // به‌روزرسانی وضعیت همکاری معلم موجود
+      // به‌روزرسانی وضعیت همکاری و نقش فرد موجود
       await prisma.teacher.update({
         where: { id: activeTeacherId },
         data: {
           collaborationStatus: finalRecommendation,
+          ...(roleTitle ? { roleTitle } : {}),
           ...(bio ? { bio: bio.trim() } : {}),
         },
       });
@@ -169,6 +174,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
     revalidatePath("/admin/teachers");
     revalidatePath("/admin/analytics");
     revalidatePath("/evaluator");
+    revalidatePath("/evaluator/schools");
     revalidatePath("/evaluator/my-evaluations");
     redirect(user.role === "ADMIN" ? `/admin/teachers/${activeTeacherId}` : `/evaluator/my-evaluations`);
   } catch (err: any) {

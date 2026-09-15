@@ -68,3 +68,56 @@ export async function createSchoolAction(prevState: any, formData: FormData) {
     return { error: "خطا در ثبت شناسنامه مدرسه: " + (err.message || "مجدداً تلاش کنید.") };
   }
 }
+
+export async function createBasicSchoolAction(prevState: any, formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "فقط مدیر ارشد سیستم مجاز به ثبت پایه مدرسه است." };
+  }
+
+  const name = formData.get("name") as string;
+  const code = formData.get("code") as string;
+  const province = (formData.get("province") as string) || "تهران";
+  const city = (formData.get("city") as string) || "تهران";
+  const district = formData.get("district") as string;
+  const address = formData.get("address") as string;
+  const principalName = formData.get("principalName") as string;
+  const phone = formData.get("phone") as string;
+  const ownershipType = (formData.get("ownershipType") as SchoolOwnership) || "GOVERNMENTAL";
+  const admissionType = (formData.get("admissionType") as AdmissionType) || "PUBLIC";
+  const notes = formData.get("notes") as string;
+
+  if (!name || !district) {
+    return { error: "نام مدرسه و منطقه آموزش و پرورش الزامی هستند." };
+  }
+
+  try {
+    const school = await prisma.school.create({
+      data: {
+        name: name.trim(),
+        code: code ? code.trim() : null,
+        province: province.trim(),
+        city: city.trim(),
+        district: district.trim(),
+        address: address ? address.trim() : null,
+        principalName: principalName ? principalName.trim() : null,
+        phone: phone ? phone.trim() : null,
+        ownershipType,
+        admissionType,
+        notes: notes ? notes.trim() : null,
+        dominantApproach: "EDUCATIONAL_CULTURAL",
+        createdById: user.id,
+      },
+    });
+
+    revalidatePath("/admin/schools");
+    revalidatePath("/evaluator/schools");
+    redirect("/admin/schools");
+  } catch (err: any) {
+    if (err.code === "P2002") {
+      return { error: "کد مدرسه وارد شده قبلاً در سیستم ثبت شده است." };
+    }
+    return { error: "خطا در ثبت مدرسه: " + (err.message || "مجدداً تلاش کنید.") };
+  }
+}
+

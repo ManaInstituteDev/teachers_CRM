@@ -109,14 +109,17 @@ export default async function TeacherDetailPage({
               <GraduationCap className="w-8 h-8" />
             </div>
             <div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-2xl font-black text-slate-900">
                   {teacher.firstName} {teacher.lastName}
                 </h1>
+                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  {teacher.roleTitle || "معلم"}
+                </span>
                 {getStatusBadge(teacher.collaborationStatus)}
               </div>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                دبیر {teacher.subject} • {teacher.grade} • سابقه: {teacher.teachingYears} سال
+                حوزه فعالیت / تدریس: {teacher.subject} • مقطع: {teacher.grade} • سابقه: {teacher.teachingYears} سال
               </p>
             </div>
           </div>

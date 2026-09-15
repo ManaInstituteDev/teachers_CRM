@@ -1,0 +1,262 @@
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
+import {
+  School as SchoolIcon,
+  ArrowRight,
+  UserPlus,
+  Users,
+  Award,
+  Calendar,
+  Phone,
+  MapPin,
+  Building2,
+  CheckCircle2,
+} from "lucide-react";
+
+export const dynamic = "force-dynamic";
+
+export default async function EvaluatorSchoolDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { id } = await params;
+
+  const school = await prisma.school.findUnique({
+    where: { id },
+    include: {
+      teachers: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          evaluations: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
+  if (!school) {
+    notFound();
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "KEY_AXIS":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+            محور
+          </span>
+        );
+      case "DEVELOPMENTAL_RELATION":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+            مستعد ارتباط رشدی
+          </span>
+        );
+      case "OCCASIONAL_RELATION":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+            ارتباط موردی
+          </span>
+        );
+      case "UNSUITABLE":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+            نامناسب همکاری
+          </span>
+        );
+      default:
+        return (
+          <span className="text-[11px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">
+            در انتظار ارزیابی
+          </span>
+        );
+    }
+  };
+
+  return (
+    <div className="p-6 md:p-10 space-y-6 max-w-5xl mx-auto">
+      {/* دکمه بازگشت */}
+      <Link
+        href="/evaluator/schools"
+        className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition"
+      >
+        <ArrowRight className="w-4 h-4" />
+        <span>بازگشت به لیست مدارس</span>
+      </Link>
+
+      {/* کارت مشخصات مدرسه و دکمه ثبت کادر */}
+      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <SchoolIcon className="w-7 h-7" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-900">
+                {school.name}
+              </h1>
+              <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                <span>
+                  {school.province} - {school.city} - {school.district}
+                </span>
+                {school.code && (
+                  <span className="font-mono text-slate-400">
+                    (کد: {school.code})
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Link
+            href={`/evaluator/evaluate?schoolId=${school.id}`}
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-md shadow-emerald-600/20 transition shrink-0 cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>+ ثبت فرد جدید از کادر این مدرسه</span>
+          </Link>
+        </div>
+
+        {/* اطلاعات تکمیلی مدرسه */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div className="p-3 bg-slate-50 rounded-xl space-y-1">
+            <span className="text-slate-400">نام مدیر مدرسه:</span>
+            <div className="font-bold text-slate-800">
+              {school.principalName || "ثبت نشده"}
+            </div>
+          </div>
+
+          <div className="p-3 bg-slate-50 rounded-xl space-y-1">
+            <span className="text-slate-400">شماره تماس مدرسه:</span>
+            <div className="font-bold text-slate-800 font-mono" dir="ltr">
+              {school.phone || "ثبت نشده"}
+            </div>
+          </div>
+
+          <div className="p-3 bg-slate-50 rounded-xl space-y-1">
+            <span className="text-slate-400">تعداد کادر ارزیابی‌شده:</span>
+            <div className="font-bold text-emerald-700">
+              {school.teachers.length} نفر
+            </div>
+          </div>
+        </div>
+
+        {school.address && (
+          <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl">
+            <strong>نشانی:</strong> {school.address}
+          </div>
+        )}
+      </div>
+
+      {/* لیست کادر ثبت‌شده این مدرسه */}
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden space-y-4">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Users className="w-5 h-5 text-indigo-600" />
+              <span>کادر ارزیابی‌شده مدرسه ({school.teachers.length} نفر)</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              معلمان، مشاوران و معاونان این مدرسه که پرونده ارزیابی برای آن‌ها تشکیل شده است
+            </p>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-right text-sm">
+            <thead className="bg-slate-50/80 text-slate-500 border-b border-slate-200/80 text-xs font-bold">
+              <tr>
+                <th className="py-3.5 px-6">نام و نام خانوادگی</th>
+                <th className="py-3.5 px-6">نقش در مدرسه</th>
+                <th className="py-3.5 px-6">رشته / حوزه فعالیت</th>
+                <th className="py-3.5 px-6 text-center">نمره کل وزنی</th>
+                <th className="py-3.5 px-6 text-center">وضعیت همکاری</th>
+                <th className="py-3.5 px-6 text-center">تاریخ ارزیابی</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
+              {school.teachers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    تاکنون هیچ فردی از کادر این مدرسه ارزیابی نشده است. با دکمه بالا اولین فرد را ثبت کنید.
+                  </td>
+                </tr>
+              ) : (
+                school.teachers.map((t) => {
+                  const latestEval = t.evaluations[0];
+                  return (
+                    <tr key={t.id} className="hover:bg-slate-50/60 transition">
+                      <td className="py-4 px-6 font-bold text-slate-900">
+                        <div>
+                          {t.firstName} {t.lastName}
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-normal">
+                          سابقه: {t.teachingYears} سال
+                        </div>
+                      </td>
+
+                      <td className="py-4 px-6">
+                        <span
+                          className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${
+                            t.roleTitle === "مشاور"
+                              ? "bg-purple-50 text-purple-700 border-purple-200"
+                              : t.roleTitle?.includes("معاون")
+                              ? "bg-sky-50 text-sky-700 border-sky-200"
+                              : t.roleTitle === "مدیر"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-slate-100 text-slate-700 border-slate-200"
+                          }`}
+                        >
+                          {t.roleTitle || "معلم"}
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-6 text-slate-600">
+                        <div>{t.subject}</div>
+                        <div className="text-[11px] text-slate-400">{t.grade}</div>
+                      </td>
+
+                      <td className="py-4 px-6 text-center">
+                        {latestEval ? (
+                          <span className="font-bold text-sm text-indigo-900 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200/60">
+                            {latestEval.totalWeightedScore.toFixed(1)}
+                            <span className="text-[10px] text-slate-400 font-normal">/۱۰۰</span>
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+
+                      <td className="py-4 px-6 text-center">
+                        {getStatusBadge(t.collaborationStatus)}
+                      </td>
+
+                      <td className="py-4 px-6 text-center text-slate-500 font-mono text-xs">
+                        {new Date(t.createdAt).toLocaleDateString("fa-IR")}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

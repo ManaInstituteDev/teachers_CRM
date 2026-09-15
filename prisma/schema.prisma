@@ -149,6 +149,11 @@ model School {
   // میزان آمادگی مدرسه برای اجرای برنامه‌های علوم انسانی
   humanitiesReadinessLevel String?       @db.Text
 
+  // اطلاعات اداری و تماس (ثبت پایه توسط مدیر)
+  principalName   String?                // نام مدیر مدرسه
+  phone           String?                // تلفن مدرسه
+  notes           String?                @db.Text // یادداشت‌های اولیه مدیر
+
   // ارزیاب ثبت‌کننده مدرسه
   createdById     String?
   createdBy       User?                  @relation("EvaluatorSchools", fields: [createdById], references: [id], onDelete: SetNull)
@@ -176,9 +181,10 @@ model Teacher {
   lastName            String
   phone               String?             @unique
   nationalCode        String?             @unique
-  teachingYears       Int                 @default(0) // سابقه تدریس
-  subject             String              // رشته تدریس
-  grade               String              // مقطع تدریس
+  teachingYears       Int                 @default(0) // سابقه کار / تدریس
+  roleTitle           String              @default("معلم") // نقش فرد در مدرسه (معلم، مشاور، معاون آموزشی، معاون پرورشی، معاون اجرایی، مدیر، مربی تربیتی/بهداشت، سایر)
+  subject             String              // رشته تدریس یا حوزه فعالیت
+  grade               String              // مقطع تدریس / فعالیت
   schoolId            String?
   school              School?             @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   schoolNameManual    String?             // در صورتی که نام مدرسه دستی وارد شود

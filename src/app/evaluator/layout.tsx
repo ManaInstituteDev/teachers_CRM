@@ -51,11 +51,19 @@ export default async function EvaluatorLayout({
             </Link>
 
             <Link
+              href="/evaluator/schools"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-800 hover:text-white transition text-emerald-300"
+            >
+              <School className="w-4 h-4 text-emerald-400" />
+              <span>مدارس و کادر آموزشی</span>
+            </Link>
+
+            <Link
               href="/evaluator/evaluate"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/30 transition"
             >
               <ClipboardPenLine className="w-4 h-4 text-emerald-400" />
-              <span>ثبت ارزیابی معلم</span>
+              <span>ثبت ارزیابی فرد جدید</span>
             </Link>
 
             <Link

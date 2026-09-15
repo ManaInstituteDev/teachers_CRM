@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import SearchableEvaluatorSelect from "@/components/SearchableEvaluatorSelect";
 import {
   GraduationCap,
   ArrowUpRight,
@@ -16,6 +17,7 @@ import {
   CheckCircle2,
   School as SchoolIcon,
   X,
+  Briefcase,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +26,7 @@ interface SearchParamsProps {
   q?: string;
   status?: string;
   evaluatorId?: string;
+  roleTitle?: string;
   schoolId?: string;
   sortBy?: string;
   sortOrder?: string;
@@ -45,6 +48,7 @@ export default async function AdminTeachersPage({
   const q = params.q || "";
   const status = params.status || "ALL";
   const evaluatorId = params.evaluatorId || "ALL";
+  const roleTitle = params.roleTitle || "ALL";
   const sortBy = params.sortBy || "totalScore"; // totalScore, axis1, axis2, axis3, axis4, axis5, teachingYears, createdAt, name
   const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
   const minScore = params.minScore ? parseFloat(params.minScore) : null;
@@ -57,10 +61,10 @@ export default async function AdminTeachersPage({
   const minAxis4 = params.minAxis4 ? parseInt(params.minAxis4, 10) : null;
   const minAxis5 = params.minAxis5 ? parseInt(params.minAxis5, 10) : null;
 
-  // دریافت لیست ارزیاب‌ها جهت دراپ‌داون فیلتر
+  // دریافت لیست ارزیاب‌ها جهت دراپ‌داون فیلتر با پشتیبانی از سرچ
   const evaluators = await prisma.user.findMany({
     where: { role: "EVALUATOR" },
-    select: { id: true, fullName: true },
+    select: { id: true, fullName: true, username: true },
     orderBy: { fullName: "asc" },
   });
 
@@ -80,6 +84,10 @@ export default async function AdminTeachersPage({
 
   if (status && status !== "ALL") {
     whereClause.collaborationStatus = status;
+  }
+
+  if (roleTitle && roleTitle !== "ALL") {
+    whereClause.roleTitle = roleTitle;
   }
 
   // فیلتر بر اساس ارزیابی‌ها
@@ -228,6 +236,7 @@ export default async function AdminTeachersPage({
     const currentParams = new URLSearchParams();
     if (q) currentParams.set("q", q);
     if (status !== "ALL") currentParams.set("status", status);
+    if (roleTitle !== "ALL") currentParams.set("roleTitle", roleTitle);
     if (evaluatorId !== "ALL") currentParams.set("evaluatorId", evaluatorId);
     if (minScore !== null) currentParams.set("minScore", String(minScore));
     if (maxScore !== null) currentParams.set("maxScore", String(maxScore));
@@ -308,8 +317,8 @@ export default async function AdminTeachersPage({
             </div>
           </div>
 
-          {/* ردیف دوم: انتخاب ارزیاب، وضعیت، مرتب‌سازی و جهت */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+          {/* ردیف دوم: انتخاب وضعیت، نقش، ارزیاب، مرتب‌سازی و جهت */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-2 border-t border-slate-100">
             {/* فیلتر وضعیت همکاری */}
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1">
@@ -329,23 +338,38 @@ export default async function AdminTeachersPage({
               </select>
             </div>
 
-            {/* فیلتر ارزیاب */}
+            {/* فیلتر نقش فرد در مدرسه */}
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                ارزیاب ثبت‌کننده:
+                نقش فرد در مدرسه:
               </label>
               <select
-                name="evaluatorId"
-                defaultValue={evaluatorId}
+                name="roleTitle"
+                defaultValue={roleTitle}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:bg-white focus:border-indigo-500"
               >
-                <option value="ALL">همه ارزیاب‌ها</option>
-                {evaluators.map((ev) => (
-                  <option key={ev.id} value={ev.id}>
-                    {ev.fullName}
-                  </option>
-                ))}
+                <option value="ALL">همه نقش‌ها</option>
+                <option value="معلم">معلم / دبیر / آموزگار</option>
+                <option value="مشاور">مشاور مدرسه</option>
+                <option value="معاون آموزشی">معاون آموزشی</option>
+                <option value="معاون پرورشی">معاون پرورشی</option>
+                <option value="معاون اجرایی">معاون اجرایی</option>
+                <option value="مدیر مدرسه">مدیر مدرسه</option>
+                <option value="مربی تربیتی">مربی تربیتی / فرهنگی</option>
               </select>
+            </div>
+
+            {/* فیلتر ارزیاب با قابلیت سرچ در باکس */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">
+                ارزیاب ثبت‌کننده (سرچ‌دار):
+              </label>
+              <SearchableEvaluatorSelect
+                evaluators={evaluators}
+                defaultValue={evaluatorId}
+                name="evaluatorId"
+                placeholder="جستجوی نام یا نام‌کاربری ارزیاب..."
+              />
             </div>
 
             {/* مرتب‌سازی بر اساس محورها یا فیلدها */}
@@ -364,8 +388,8 @@ export default async function AdminTeachersPage({
                 <option value="axis3">نمره محور ۳ (نگرش علوم انسانی - سقف ۱۰۰)</option>
                 <option value="axis4">نمره محور ۴ (سرمایه ارتباطی - سقف ۱۰۰)</option>
                 <option value="axis5">نمره محور ۵ (تعهد و همکاری - سقف ۷۵)</option>
-                <option value="teachingYears">سابقه تدریس</option>
-                <option value="name">نام خانوادگی معلم</option>
+                <option value="teachingYears">سابقه کار / تدریس</option>
+                <option value="name">نام خانوادگی</option>
                 <option value="createdAt">جدیدترین زمان ثبت</option>
               </select>
             </div>
@@ -588,8 +612,21 @@ export default async function AdminTeachersPage({
                   return (
                     <tr key={teacher.id} className="hover:bg-slate-50/60 transition">
                       <td className="py-4 px-5 font-bold text-slate-900 whitespace-nowrap">
-                        <div>
-                          {teacher.firstName} {teacher.lastName}
+                        <div className="flex items-center gap-2">
+                          <span>{teacher.firstName} {teacher.lastName}</span>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${
+                              teacher.roleTitle === "مشاور"
+                                ? "bg-purple-50 text-purple-700 border-purple-200"
+                                : teacher.roleTitle?.includes("معاون")
+                                ? "bg-sky-50 text-sky-700 border-sky-200"
+                                : teacher.roleTitle === "مدیر" || teacher.roleTitle?.includes("مدیر")
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-slate-100 text-slate-700 border-slate-200/80"
+                            }`}
+                          >
+                            {teacher.roleTitle || "معلم"}
+                          </span>
                         </div>
                         <div className="text-[11px] text-slate-400 font-normal mt-0.5">
                           سابقه: {teacher.teachingYears} سال

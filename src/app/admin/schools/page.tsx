@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { School, ArrowUpRight, Search, MapPin, Building2, BookOpen } from "lucide-react";
+import { School, ArrowUpRight, Search, MapPin, Building2, BookOpen, PlusCircle, Phone, User } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +103,14 @@ export default async function AdminSchoolsPage({
             مشاهده توصیف ساختاری، رویکرد غالب تربیتی و ظرفیت علوم انسانی مدارس ثبت‌شده
           </p>
         </div>
+
+        <Link
+          href="/admin/schools/new"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 transition self-start sm:self-auto"
+        >
+          <PlusCircle className="w-4 h-4" />
+          <span>تعریف مدرسه جدید</span>
+        </Link>
       </div>
 
       {/* جستجو */}
@@ -134,12 +142,12 @@ export default async function AdminSchoolsPage({
           <table className="w-full text-right text-sm">
             <thead className="bg-slate-50/80 text-slate-500 border-b border-slate-200/80 text-xs font-semibold">
               <tr>
-                <th className="py-3.5 px-6">نام مدرسه</th>
+                <th className="py-3.5 px-6">نام مدرسه و مدیر</th>
                 <th className="py-3.5 px-6">منطقه / شهر</th>
                 <th className="py-3.5 px-6">نوع مالکیت</th>
                 <th className="py-3.5 px-6">رویکرد غالب تربیتی</th>
                 <th className="py-3.5 px-6">نگرش به علوم انسانی</th>
-                <th className="py-3.5 px-6 text-center">معلمان ثبت‌شده</th>
+                <th className="py-3.5 px-6 text-center">کادر ارزیابی‌شده</th>
                 <th className="py-3.5 px-6 text-left">شناسنامه</th>
               </tr>
             </thead>
@@ -147,19 +155,27 @@ export default async function AdminSchoolsPage({
               {schools.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400 text-sm">
-                    هیچ مدرسه‌ای یافت نشد.
+                    هیچ مدرسه‌ای یافت نشد. از دکمه «تعریف مدرسه جدید» استفاده کنید.
                   </td>
                 </tr>
               ) : (
                 schools.map((school) => (
                   <tr key={school.id} className="hover:bg-slate-50/50 transition">
                     <td className="py-4 px-6 font-semibold text-slate-900">
-                      {school.name}
-                      {school.code && (
-                        <div className="text-[11px] font-mono text-slate-400 font-normal">
-                          کد: {school.code}
-                        </div>
-                      )}
+                      <div>{school.name}</div>
+                      <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400 font-normal">
+                        {school.code && <span className="font-mono">کد: {school.code}</span>}
+                        {school.principalName && (
+                          <span className="text-slate-600 font-medium">
+                            مدیر: {school.principalName}
+                          </span>
+                        )}
+                        {school.phone && (
+                          <span className="font-mono text-slate-500" dir="ltr">
+                            {school.phone}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-4 px-6 text-slate-600 text-xs">
                       {school.province} - {school.district}
