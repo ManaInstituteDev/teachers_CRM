@@ -13,14 +13,23 @@ export async function loginAction(prevState: any, formData: FormData) {
   }
 
   // ارزیاب یا ادمین می‌تواند با نام کاربری یا شماره موبایل وارد شود
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { username: username.trim() },
-        { phone: username.trim() },
-      ],
-    },
-  });
+  let user;
+  try {
+    user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: username.trim() },
+          { phone: username.trim() },
+        ],
+      },
+    });
+  } catch (err: any) {
+    console.error("Login database connection error:", err);
+    return {
+      error:
+        "خطا در برقراری ارتباط با پایگاه‌داده. لطفاً از اتصال دیتابیس ابری و تنظیم صحیح متغیر DATABASE_URL در پنل ورسل اطمینان حاصل کنید.",
+    };
+  }
 
   if (!user || user.password !== password.trim()) {
     return { error: "نام کاربری یا کلمه عبور نادرست است." };
