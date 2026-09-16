@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import TimesheetFormClient from "./TimesheetFormClient";
 import { deleteTimesheetAction } from "@/app/actions/timesheet";
+import { EvaluatorShebaManager } from "@/components/evaluator/EvaluatorShebaManager";
 
 export const dynamic = "force-dynamic";
 
@@ -26,27 +27,29 @@ export default async function EvaluatorTimesheetsPage() {
     redirect("/login");
   }
 
-  // دریافت کمک‌ارزیاب‌های متصل به این ارزیاب
-  const assistants = await prisma.assistantEvaluator.findMany({
-    where: { evaluatorId: user.id, isActive: true },
-    orderBy: { fullName: "asc" },
-  });
-
-  // دریافت لیست مدارس
-  const schools = await prisma.school.findMany({
-    select: { id: true, name: true, district: true },
-    orderBy: { name: "asc" },
-  });
-
-  // دریافت لاگ‌های ساعت کاری ثبت شده توسط این ارزیاب
-  const logs = await prisma.timesheetLog.findMany({
-    where: { evaluatorId: user.id },
-    orderBy: { date: "desc" },
-    include: {
-      assistantEvaluator: true,
-      school: true,
-    },
-  });
+  // دریافت اطلاعات همزمان: کمک‌ارزیابان، مدارس، لاگ‌ها و شماره شبای خود ارزیاب
+  const [assistants, schools, logs, userDb] = await Promise.all([
+    prisma.assistantEvaluator.findMany({
+      where: { evaluatorId: user.id, isActive: true },
+      orderBy: { fullName: "asc" },
+    }),
+    prisma.school.findMany({
+      select: { id: true, name: true, district: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.timesheetLog.findMany({
+      where: { evaluatorId: user.id },
+      orderBy: { date: "desc" },
+      include: {
+        assistantEvaluator: true,
+        school: true,
+      },
+    }),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { shebaNumber: true },
+    }),
+  ]);
 
   // محاسبات مجموع ساعات
   const totalMinutesSelf = logs
@@ -117,6 +120,16 @@ export default async function EvaluatorTimesheetsPage() {
           </div>
         </div>
       </div>
+
+      {/* بخش مدیریت و ویرایش اطلاعات شبا */}
+      <EvaluatorShebaManager
+        evaluatorId={user.id}
+        evaluatorName={user.fullName}
+        evaluatorSheba={userDb?.shebaNumber}
+        assistants={assistants}
+        mode="manager"
+        collapsible={true}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* فرم ثبت کارکرد جدید */}
