@@ -37,6 +37,7 @@ export default async function EvaluatorsListPage() {
       ev.fullName,
       ev.username,
       ev.phone || "-",
+      ev.shebaNumber || "ثبت‌نشده",
       ev.assistants.length,
       assistantsNames,
       ev._count.teacherEvaluations,
@@ -54,7 +55,7 @@ export default async function EvaluatorsListPage() {
             مدیریت ارزیاب‌ها و تیم‌های ارزیابی
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            تعریف ارزیاب‌های اصلی، اتصال کمک‌ارزیاب‌ها، ارسال اطلاعات ورود با پیامک و پایش ساعات کاری
+            تعریف ارزیاب‌های اصلی، اتصال کمک‌ارزیاب‌ها، ارسال اطلاعات ورود با پیامک، شماره شبا و پایش ساعات کاری
           </p>
         </div>
 
@@ -66,6 +67,7 @@ export default async function EvaluatorsListPage() {
               "نام و نام خانوادگی",
               "نام کاربری",
               "شماره تماس",
+              "شماره شبا",
               "تعداد کمکیاران",
               "اسامی کمکیاران متصل",
               "تعداد ارزیابی‌های ثبت‌شده",

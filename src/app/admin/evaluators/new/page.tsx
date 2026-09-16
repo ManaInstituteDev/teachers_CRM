@@ -164,6 +164,22 @@ export default function NewEvaluatorPage() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              شماره شبا ارزیاب جهت تسویه مالی (اختیاری)
+            </label>
+            <input
+              type="text"
+              name="shebaNumber"
+              placeholder="مثال: IR120120000000001234567890 یا بدون IR"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 rounded-xl px-3.5 py-2.5 text-sm transition outline-none font-mono text-left"
+              dir="ltr"
+            />
+            <p className="text-[11px] text-slate-400 mt-1">
+              جهت گزارش‌گیری مالی و تسویه حق‌الزحمه ارزیابی در صفحه پایش ساعات کاری.
+            </p>
+          </div>
+
           {/* باکس آماده پیامک دستی */}
           <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 space-y-3 shadow-md border border-slate-800">
             <div className="flex items-center justify-between">

@@ -15,6 +15,7 @@ export async function createEvaluatorAction(prevState: any, formData: FormData) 
   const username = formData.get("username") as string;
   const password = formData.get("password") as string;
   const phone = formData.get("phone") as string;
+  const shebaNumber = formData.get("shebaNumber") as string;
 
   if (!fullName || !username || !password) {
     return { error: "لطفاً تمام فیلدهای الزامی را تکمیل کنید." };
@@ -29,12 +30,19 @@ export async function createEvaluatorAction(prevState: any, formData: FormData) 
     return { error: "این نام کاربری قبلاً در سامانه ثبت شده است." };
   }
 
+  // تمیزکاری شماره شبا
+  let cleanSheba = shebaNumber ? shebaNumber.replace(/\s+/g, "").toUpperCase() : null;
+  if (cleanSheba && !cleanSheba.startsWith("IR") && /^\d+$/.test(cleanSheba)) {
+    cleanSheba = "IR" + cleanSheba;
+  }
+
   await prisma.user.create({
     data: {
       fullName: fullName.trim(),
       username: username.trim(),
       password: password.trim(),
       phone: phone ? phone.trim() : null,
+      shebaNumber: cleanSheba,
       role: "EVALUATOR",
       isActive: true,
     },

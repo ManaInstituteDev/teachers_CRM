@@ -13,15 +13,16 @@ enum UserRole {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  fullName  String
-  username  String   @unique
-  password  String   // ذخیره رمز عبور (یا هش)
-  phone     String?
-  role      UserRole @default(EVALUATOR)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  fullName    String
+  username    String   @unique
+  password    String   // ذخیره رمز عبور (یا هش)
+  phone       String?
+  shebaNumber String?  // شماره شبا ارزیاب جهت تسویه مالی
+  role        UserRole @default(EVALUATOR)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   createdSchools     School[]            @relation("EvaluatorSchools")
   assignedSchools    School[]            @relation("AssignedSchools")
@@ -37,6 +38,7 @@ model AssistantEvaluator {
   fullName     String
   phone        String?
   nationalCode String?
+  shebaNumber  String?  // شماره شبا کمک‌ارزیاب جهت تسویه مالی
   notes        String?  @db.Text
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -56,10 +58,20 @@ enum WorkerType {
   ASSISTANT_EVALUATOR // کمک ارزیاب
 }
 
+enum TimesheetStatus {
+  PENDING   // در انتظار بررسی و تایید مدیر
+  APPROVED  // تایید شده
+  REVISED   // تعدیل شده توسط مدیر (کمتر یا بیشتر)
+  REJECTED  // رد شده
+}
+
 model TimesheetLog {
   id                   String              @id @default(cuid())
   date                 DateTime            @default(now())
-  durationMinutes      Int                 // مدت زمان کارکرد بر حسب دقیقه
+  durationMinutes      Int                 // مدت زمان کارکرد ثبت‌شده بر حسب دقیقه
+  approvedMinutes      Int?                // مدت زمان کارکرد تایید شده توسط مدیر بر حسب دقیقه (در صورت تایید)
+  status               TimesheetStatus     @default(PENDING)
+  adminNotes           String?             @db.Text // یادداشت یا علت تعدیل ساعت توسط مدیر
   workerType           WorkerType          @default(EVALUATOR)
   description          String?             @db.Text // شرح کارکرد و فعالیت
 

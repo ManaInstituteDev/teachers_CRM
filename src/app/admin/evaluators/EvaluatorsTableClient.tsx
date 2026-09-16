@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check, MessageSquare, Clock } from "lucide-react";
 import { toggleEvaluatorStatusAction } from "@/app/actions/evaluator";
+import { QuickShebaEdit } from "@/components/admin/QuickShebaEdit";
 
 interface AssistantInfo {
   id: string;
@@ -20,6 +21,7 @@ interface EvaluatorItem {
   username: string;
   password: string;
   phone: string | null;
+  shebaNumber?: string | null;
   isActive: boolean;
   assistants: AssistantInfo[];
   timesheets: TimesheetInfo[];
@@ -57,6 +59,7 @@ export default function EvaluatorsTableClient({
               <th className="py-4 px-6">نام ارزیاب</th>
               <th className="py-4 px-6">اطلاعات ورود (پیامک)</th>
               <th className="py-4 px-6">شماره همراه</th>
+              <th className="py-4 px-6">شماره شبا (تسویه)</th>
               <th className="py-4 px-6">کمک‌ارزیاب‌های متصل</th>
               <th className="py-4 px-6 text-center">ساعات کارکرد</th>
               <th className="py-4 px-6 text-center">ارزیابی‌های ثبت‌شده</th>
@@ -108,6 +111,13 @@ export default function EvaluatorsTableClient({
                     </td>
                     <td className="py-4 px-6 text-slate-600 font-mono text-xs" dir="ltr">
                       {ev.phone || "—"}
+                    </td>
+                    <td className="py-4 px-6">
+                      <QuickShebaEdit
+                        userId={ev.id}
+                        currentSheba={ev.shebaNumber}
+                        userName={ev.fullName}
+                      />
                     </td>
                     <td className="py-4 px-6">
                       {!ev.assistants || ev.assistants.length === 0 ? (
