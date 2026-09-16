@@ -412,6 +412,8 @@ export default async function AdminSchoolsPage({
     "منطقه آموزش و پرورش",
     "نام مدیر",
     "تلفن تماس",
+    "نام معرف",
+    "تلفن معرف",
     "نوع مالکیت",
     "ارزیاب متصل (کارتابل)",
     "نام کاربری ارزیاب",
@@ -435,6 +437,8 @@ export default async function AdminSchoolsPage({
     s.district || "-",
     s.principalName || "-",
     s.phone || "-",
+    s.referrerName || "-",
+    s.referrerPhone || "-",
     getOwnershipLabel(s.ownershipType),
     s.assignedEvaluator ? s.assignedEvaluator.fullName : "بدون ارزیاب",
     s.assignedEvaluator ? s.assignedEvaluator.username : "-",
@@ -896,6 +900,14 @@ export default async function AdminSchoolsPage({
                         {school.phone && (
                           <span className="font-mono text-slate-500" dir="ltr">
                             {school.phone}
+                          </span>
+                        )}
+                        {school.referrerName && (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 font-medium">
+                            <span className="text-slate-400">معرف:</span> {school.referrerName}
+                            {school.referrerPhone && (
+                              <span className="font-mono text-amber-700" dir="ltr">({school.referrerPhone})</span>
+                            )}
                           </span>
                         )}
                       </div>

@@ -14,6 +14,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { AssignEvaluatorForm } from "@/components/admin/AssignEvaluatorForm";
+import { SchoolReferrerManager } from "@/components/admin/SchoolReferrerManager";
 
 export const dynamic = "force-dynamic";
 
@@ -207,11 +208,31 @@ export default async function SchoolDetailPage({
           />
         </div>
 
-        {school.address && (
-          <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500">
-            <strong>آدرس: </strong> {school.address}
+        {/* مشخصات معرف مدرسه (جهت ارجاع و هماهنگی ارزیاب) */}
+        <div className="mt-4">
+          <SchoolReferrerManager
+            schoolId={school.id}
+            initialReferrerName={school.referrerName}
+            initialReferrerPhone={school.referrerPhone}
+            isAdmin={true}
+          />
+        </div>
+
+        {/* اطلاعات تماس و نشانی */}
+        <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-600">
+          <div>
+            <strong>مدیر مدرسه: </strong>
+            <span className="text-slate-800">{school.principalName || "ثبت نشده"}</span>
           </div>
-        )}
+          <div>
+            <strong>شماره تماس: </strong>
+            <span className="text-slate-800 font-mono" dir="ltr">{school.phone || "ثبت نشده"}</span>
+          </div>
+          <div>
+            <strong>نشانی: </strong>
+            <span className="text-slate-800">{school.address || "ثبت نشده"}</span>
+          </div>
+        </div>
       </div>
 
       {/* ۳: شواهد عملی رویکرد تربیتی */}

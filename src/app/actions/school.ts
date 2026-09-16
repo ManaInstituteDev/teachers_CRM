@@ -18,6 +18,8 @@ export async function createSchoolAction(prevState: any, formData: FormData) {
   const city = (formData.get("city") as string) || "تهران";
   const district = formData.get("district") as string;
   const address = formData.get("address") as string;
+  const referrerName = formData.get("referrerName") as string;
+  const referrerPhone = formData.get("referrerPhone") as string;
 
   const ownershipType = formData.get("ownershipType") as SchoolOwnership;
   const ownershipOther = formData.get("ownershipOther") as string;
@@ -45,6 +47,8 @@ export async function createSchoolAction(prevState: any, formData: FormData) {
         city: city.trim(),
         district: district.trim(),
         address: address ? address.trim() : null,
+        referrerName: referrerName ? referrerName.trim() : null,
+        referrerPhone: referrerPhone ? referrerPhone.trim() : null,
         ownershipType: ownershipType || "GOVERNMENTAL",
         ownershipOther: ownershipOther ? ownershipOther.trim() : null,
         admissionType: admissionType || "PUBLIC",
@@ -83,6 +87,8 @@ export async function createBasicSchoolAction(prevState: any, formData: FormData
   const address = formData.get("address") as string;
   const principalName = formData.get("principalName") as string;
   const phone = formData.get("phone") as string;
+  const referrerName = formData.get("referrerName") as string;
+  const referrerPhone = formData.get("referrerPhone") as string;
   const ownershipType = (formData.get("ownershipType") as SchoolOwnership) || "GOVERNMENTAL";
   const admissionType = (formData.get("admissionType") as AdmissionType) || "PUBLIC";
   const notes = formData.get("notes") as string;
@@ -103,6 +109,8 @@ export async function createBasicSchoolAction(prevState: any, formData: FormData
         address: address ? address.trim() : null,
         principalName: principalName ? principalName.trim() : null,
         phone: phone ? phone.trim() : null,
+        referrerName: referrerName ? referrerName.trim() : null,
+        referrerPhone: referrerPhone ? referrerPhone.trim() : null,
         ownershipType,
         admissionType,
         notes: notes ? notes.trim() : null,
@@ -198,4 +206,37 @@ export async function updateSchoolEvaluationAction(prevState: any, formData: For
     return { error: "خطا در ذخیره ارزیابی مدرسه: " + (err.message || "مجدداً تلاش کنید.") };
   }
 }
+
+export async function updateSchoolReferrerAction(
+  schoolId: string,
+  referrerName: string | null,
+  referrerPhone: string | null
+) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "فقط مدیر ارشد سیستم مجاز به تغییر معرف مدرسه است." };
+  }
+  if (!schoolId) {
+    return { error: "شناسه مدرسه مشخص نشده است." };
+  }
+
+  try {
+    await prisma.school.update({
+      where: { id: schoolId },
+      data: {
+        referrerName: referrerName ? referrerName.trim() : null,
+        referrerPhone: referrerPhone ? referrerPhone.trim() : null,
+      },
+    });
+
+    revalidatePath("/admin/schools");
+    revalidatePath(`/admin/schools/${schoolId}`);
+    revalidatePath("/evaluator/schools");
+    revalidatePath(`/evaluator/schools/${schoolId}`);
+    return { success: true };
+  } catch (err: any) {
+    return { error: "خطا در بروزرسانی معرف: " + (err.message || "مجدداً تلاش کنید.") };
+  }
+}
+
 

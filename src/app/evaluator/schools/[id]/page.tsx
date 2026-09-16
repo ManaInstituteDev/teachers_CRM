@@ -14,6 +14,7 @@ import {
   Building2,
   CheckCircle2,
   Compass,
+  UserCheck,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -148,6 +149,44 @@ export default async function EvaluatorSchoolDetailPage({
               <span>+ ثبت کادر جدید این مدرسه</span>
             </Link>
           </div>
+        </div>
+
+        {/* مشخصات معرف مدرسه (راهنمای مراجعه و معرفی ارزیاب) */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50/50 border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 shadow-2xs">
+              <UserCheck className="w-5 h-5" />
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-amber-950 text-xs sm:text-sm">
+                  معرف این مدرسه:
+                </span>
+                <span className="font-extrabold text-amber-900 bg-white/90 px-2.5 py-0.5 rounded-lg border border-amber-300/70 text-xs sm:text-sm">
+                  {school.referrerName || "ثبت نشده"}
+                </span>
+              </div>
+              <p className="text-[11px] text-amber-800 leading-relaxed">
+                {school.referrerName
+                  ? `هنگام مراجعه به این مدرسه، جهت سهولت در پذیرش خود را به عنوان ارزیابِ معرفی‌شده از طرف «${school.referrerName}» معرفی فرمایید.`
+                  : "معرف خاصی برای این مدرسه ثبت نشده است. هماهنگی را مستقیماً با مدیر مدرسه انجام دهید."}
+              </p>
+            </div>
+          </div>
+
+          {school.referrerPhone && (
+            <div className="flex items-center gap-2 shrink-0 bg-white border border-amber-200/80 px-3.5 py-2 rounded-xl shadow-2xs self-start sm:self-auto">
+              <Phone className="w-3.5 h-3.5 text-amber-600" />
+              <span className="text-[11px] text-slate-500 font-medium">شماره تماس معرف:</span>
+              <a
+                href={`tel:${school.referrerPhone}`}
+                className="font-bold text-amber-900 font-mono hover:underline text-xs"
+                dir="ltr"
+              >
+                {school.referrerPhone}
+              </a>
+            </div>
+          )}
         </div>
 
         {/* اطلاعات تکمیلی مدرسه */}

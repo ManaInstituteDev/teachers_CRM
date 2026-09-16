@@ -253,6 +253,46 @@ export function AdminNewSchoolFormClient({
               </div>
             </div>
 
+            {/* مشخصات معرف مدرسه */}
+            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-3">
+              <div className="flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-amber-600" />
+                <span className="text-xs sm:text-sm font-bold text-amber-950">
+                  مشخصات معرف مدرسه (جهت مراجعه و هماهنگی ارزیاب)
+                </span>
+              </div>
+              <p className="text-[11px] text-amber-800 leading-relaxed">
+                ارزیاب هنگام مراجعه به مدرسه، این مشخصات را در کارتابل خود می‌بیند تا بداند این مدرسه توسط چه شخصی معرفی شده و خود را به چه کسی معرفی کند.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-amber-900 mb-1.5">
+                    نام و عنوان معرف (اختیاری)
+                  </label>
+                  <input
+                    type="text"
+                    name="referrerName"
+                    placeholder="مثلاً: آقای دکتر حسینی یا سرکار خانم طاهری"
+                    className="w-full bg-white border border-amber-200 focus:border-amber-500 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-amber-900 mb-1.5">
+                    شماره تماس معرف (اختیاری)
+                  </label>
+                  <input
+                    type="text"
+                    name="referrerPhone"
+                    placeholder="مثلاً: 09121112233"
+                    className="w-full bg-white border border-amber-200 focus:border-amber-500 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition font-mono"
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 یادداشت اولیه مدیر (اختیاری)

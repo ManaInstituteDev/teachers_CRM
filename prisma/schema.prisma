@@ -167,6 +167,10 @@ model School {
   phone           String?                // تلفن مدرسه
   notes           String?                @db.Text // یادداشت‌های اولیه مدیر
 
+  // مشخصات معرف مدرسه (جهت هماهنگی و معرفی ارزیاب)
+  referrerName    String?                // نام معرف مدرسه
+  referrerPhone   String?                // شماره تماس معرف مدرسه
+
   // ارزیاب ثبت‌کننده مدرسه
   createdById         String?
   createdBy           User?                  @relation("EvaluatorSchools", fields: [createdById], references: [id], onDelete: SetNull)

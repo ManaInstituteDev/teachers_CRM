@@ -14,6 +14,7 @@ import {
   Phone,
   CheckCircle2,
   Compass,
+  UserCheck,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -195,6 +196,27 @@ export default async function EvaluatorSchoolsPage({
                         <div className="text-slate-400 truncate">
                           نشانی: {school.address}
                         </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* معرف مدرسه */}
+                  {school.referrerName && (
+                    <div className="text-[11px] text-amber-900 bg-amber-50/80 border border-amber-200/70 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <UserCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span className="text-slate-500">معرف:</span>
+                        <strong className="text-amber-950 truncate">{school.referrerName}</strong>
+                      </div>
+                      {school.referrerPhone && (
+                        <a
+                          href={`tel:${school.referrerPhone}`}
+                          className="font-mono text-[11px] text-amber-800 hover:underline shrink-0 bg-white px-2 py-0.5 rounded border border-amber-200"
+                          dir="ltr"
+                          title="تماس با معرف مدرسه"
+                        >
+                          {school.referrerPhone}
+                        </a>
                       )}
                     </div>
                   )}
