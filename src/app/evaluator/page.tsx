@@ -14,6 +14,7 @@ import {
   Clock,
   Users,
 } from "lucide-react";
+import { EvaluatorShebaManager } from "@/components/evaluator/EvaluatorShebaManager";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function EvaluatorDashboardPage() {
   }
 
   // دریافت آمار مربوط به همین ارزیاب
-  const [evaluationsCount, schoolsCount, myEvaluations, timesheetLogs, assistants] = await Promise.all([
+  const [evaluationsCount, schoolsCount, myEvaluations, timesheetLogs, assistants, userDb] = await Promise.all([
     prisma.teacherEvaluation.count({
       where: { evaluatorId: user.id },
     }),
@@ -45,6 +46,10 @@ export default async function EvaluatorDashboardPage() {
     }),
     prisma.assistantEvaluator.findMany({
       where: { evaluatorId: user.id, isActive: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { shebaNumber: true },
     }),
   ]);
 
@@ -148,6 +153,14 @@ export default async function EvaluatorDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* بخش شماره شبا ارزیاب و کمک‌ارزیابان */}
+      <EvaluatorShebaManager
+        evaluatorId={user.id}
+        evaluatorName={user.fullName}
+        evaluatorSheba={userDb?.shebaNumber}
+        assistants={assistants}
+      />
 
       {/* آخرین ارزیابی‌های من */}
       <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">

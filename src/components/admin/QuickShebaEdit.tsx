@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { updateEvaluatorShebaAction } from "@/app/actions/timesheetApproval";
+import { updateEvaluatorShebaAction, updateAssistantShebaAction } from "@/app/actions/timesheetApproval";
 import { CreditCard, Check, Edit2, Loader2, X } from "lucide-react";
 
 export function QuickShebaEdit({
   userId,
   currentSheba,
   userName,
+  targetType = "USER",
 }: {
   userId: string;
   currentSheba?: string | null;
   userName?: string;
+  targetType?: "USER" | "ASSISTANT";
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [sheba, setSheba] = useState(currentSheba || "");
@@ -30,7 +32,11 @@ export function QuickShebaEdit({
       cleanSheba = "IR" + cleanSheba;
     }
 
-    const res = await updateEvaluatorShebaAction(userId, cleanSheba);
+    const res =
+      targetType === "ASSISTANT"
+        ? await updateAssistantShebaAction(userId, cleanSheba)
+        : await updateEvaluatorShebaAction(userId, cleanSheba);
+
     setLoading(false);
 
     if (res?.error) {

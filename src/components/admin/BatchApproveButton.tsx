@@ -1,26 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import { batchApproveEvaluatorTimesheetsAction } from "@/app/actions/timesheetApproval";
+import {
+  batchApproveEvaluatorTimesheetsAction,
+  batchApproveAssistantTimesheetsAction,
+} from "@/app/actions/timesheetApproval";
 import { CheckCheck, Loader2 } from "lucide-react";
 
 export function BatchApproveButton({
   evaluatorId,
+  personId,
+  targetType = "USER",
   pendingCount,
 }: {
-  evaluatorId: string;
+  evaluatorId?: string;
+  personId?: string;
+  targetType?: "USER" | "ASSISTANT";
   pendingCount: number;
 }) {
   const [loading, setLoading] = useState(false);
 
-  if (pendingCount === 0) return null;
+  const effectiveId = personId || evaluatorId;
+  if (pendingCount === 0 || !effectiveId) return null;
 
   const handleBatchApprove = async () => {
     if (!confirm(`آیا از تایید هم‌زمان ${pendingCount} مورد ساعت کارکرد در انتظار مطمئن هستید؟`)) {
       return;
     }
     setLoading(true);
-    await batchApproveEvaluatorTimesheetsAction(evaluatorId);
+    if (targetType === "ASSISTANT") {
+      await batchApproveAssistantTimesheetsAction(effectiveId);
+    } else {
+      await batchApproveEvaluatorTimesheetsAction(effectiveId);
+    }
     setLoading(false);
   };
 
