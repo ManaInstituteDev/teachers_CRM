@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { School, ArrowUpRight, Search, MapPin, Building2, BookOpen, PlusCircle, Phone, User } from "lucide-react";
+import { School, ArrowUpRight, Search, MapPin, Building2, BookOpen, PlusCircle, Phone, User, UserCheck } from "lucide-react";
+import { AssignEvaluatorForm } from "@/components/admin/AssignEvaluatorForm";
 
 export const dynamic = "force-dynamic";
 
@@ -21,16 +22,24 @@ export default async function AdminSchoolsPage({
     ];
   }
 
-  const schools = await prisma.school.findMany({
-    where: whereClause,
-    orderBy: { createdAt: "desc" },
-    include: {
-      createdBy: true,
-      _count: {
-        select: { teachers: true },
+  const [schools, evaluators] = await Promise.all([
+    prisma.school.findMany({
+      where: whereClause,
+      orderBy: { createdAt: "desc" },
+      include: {
+        createdBy: true,
+        assignedEvaluator: true,
+        _count: {
+          select: { teachers: true },
+        },
       },
-    },
-  });
+    }),
+    prisma.user.findMany({
+      where: { role: "EVALUATOR", isActive: true },
+      select: { id: true, fullName: true, username: true },
+      orderBy: { fullName: "asc" },
+    }),
+  ]);
 
   const getOwnershipLabel = (type: string) => {
     switch (type) {
@@ -145,6 +154,7 @@ export default async function AdminSchoolsPage({
                 <th className="py-3.5 px-6">نام مدرسه و مدیر</th>
                 <th className="py-3.5 px-6">منطقه / شهر</th>
                 <th className="py-3.5 px-6">نوع مالکیت</th>
+                <th className="py-3.5 px-6">ارزیاب متصل (کارتابل)</th>
                 <th className="py-3.5 px-6">رویکرد غالب تربیتی</th>
                 <th className="py-3.5 px-6">نگرش به علوم انسانی</th>
                 <th className="py-3.5 px-6 text-center">کادر ارزیابی‌شده</th>
@@ -154,7 +164,7 @@ export default async function AdminSchoolsPage({
             <tbody className="divide-y divide-slate-100">
               {schools.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 text-sm">
+                  <td colSpan={8} className="py-12 text-center text-slate-400 text-sm">
                     هیچ مدرسه‌ای یافت نشد. از دکمه «تعریف مدرسه جدید» استفاده کنید.
                   </td>
                 </tr>
@@ -182,6 +192,13 @@ export default async function AdminSchoolsPage({
                     </td>
                     <td className="py-4 px-6 text-xs text-slate-700">
                       {getOwnershipLabel(school.ownershipType)}
+                    </td>
+                    <td className="py-4 px-6">
+                      <AssignEvaluatorForm
+                        schoolId={school.id}
+                        currentEvaluatorId={school.assignedEvaluatorId}
+                        evaluators={evaluators}
+                      />
                     </td>
                     <td className="py-4 px-6 text-xs text-slate-700">
                       {getApproachLabel(school.dominantApproach)}

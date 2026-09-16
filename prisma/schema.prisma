@@ -24,6 +24,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   createdSchools     School[]            @relation("EvaluatorSchools")
+  assignedSchools    School[]            @relation("AssignedSchools")
   teacherEvaluations TeacherEvaluation[] @relation("EvaluatorEvaluations")
   assistants         AssistantEvaluator[] @relation("EvaluatorAssistants")
   timesheets         TimesheetLog[]      @relation("EvaluatorTimesheets")
@@ -155,8 +156,12 @@ model School {
   notes           String?                @db.Text // یادداشت‌های اولیه مدیر
 
   // ارزیاب ثبت‌کننده مدرسه
-  createdById     String?
-  createdBy       User?                  @relation("EvaluatorSchools", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById         String?
+  createdBy           User?                  @relation("EvaluatorSchools", fields: [createdById], references: [id], onDelete: SetNull)
+
+  // ارزیاب تخصیص‌یافته توسط مدیر
+  assignedEvaluatorId String?
+  assignedEvaluator   User?                  @relation("AssignedSchools", fields: [assignedEvaluatorId], references: [id], onDelete: SetNull)
 
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt

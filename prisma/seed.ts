@@ -110,12 +110,15 @@ async function main() {
       phone: "021-66554433",
       notes: "مدرسه دارای کانون فعال شعر و مناظره دانش‌آموزی است.",
       createdById: evaluator1.id,
+      assignedEvaluatorId: evaluator1.id,
     },
   });
 
   const school2 = await prisma.school.upsert({
     where: { code: "SCH-1002" },
-    update: {},
+    update: {
+      assignedEvaluatorId: evaluator1.id,
+    },
     create: {
       name: "دبیرستان غیردولتی احسان",
       code: "SCH-1002",
@@ -135,6 +138,7 @@ async function main() {
       phone: "021-22334455",
       notes: "هماهنگی‌های اولیه با معاون پرورشی انجام شده است.",
       createdById: evaluator1.id,
+      assignedEvaluatorId: evaluator1.id,
     },
   });
 

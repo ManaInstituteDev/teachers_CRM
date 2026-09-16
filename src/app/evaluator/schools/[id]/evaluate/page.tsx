@@ -25,6 +25,10 @@ export default async function EvaluatorSchoolEvaluationPage({
     notFound();
   }
 
+  if (school.assignedEvaluatorId !== user.id) {
+    redirect("/evaluator/schools");
+  }
+
   return (
     <SchoolEvaluationFormClient
       school={{

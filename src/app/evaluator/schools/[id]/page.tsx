@@ -49,6 +49,11 @@ export default async function EvaluatorSchoolDetailPage({
     notFound();
   }
 
+  // ارزیاب فقط مجاز به دیدن مدرسه‌ای است که به او تخصیص داده شده
+  if (school.assignedEvaluatorId !== user.id) {
+    redirect("/evaluator/schools");
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "KEY_AXIS":

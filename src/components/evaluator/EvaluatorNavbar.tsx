@@ -66,17 +66,8 @@ export function EvaluatorNavbar({ userName, phone }: EvaluatorNavbarProps) {
           </div>
         </div>
 
-        {/* بخش راست: اکشن‌ها و پروفایل */}
+        {/* بخش راست: پروفایل و خروج */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* لینک سریع ثبت ارزیابی فرد در دسکتاپ */}
-          <Link
-            href="/evaluator/evaluate"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-900/40 transition"
-          >
-            <ClipboardPenLine className="w-3.5 h-3.5" />
-            <span>ارزیابی فرد جدید</span>
-          </Link>
-
           {/* چیپ مشخصات ارزیاب */}
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-right">
             <div className="w-7 h-7 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
@@ -133,12 +124,12 @@ export function EvaluatorNavbar({ userName, phone }: EvaluatorNavbarProps) {
 
           <div className="grid grid-cols-2 gap-2 text-xs">
             <Link
-              href="/evaluator/schools/new"
+              href="/evaluator/schools"
               onClick={() => setMobileMenuOpen(false)}
               className="p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/80 text-slate-200 flex items-center gap-2 transition"
             >
-              <School className="w-4 h-4 text-sky-400" />
-              <span>+ ثبت مدرسه</span>
+              <School className="w-4 h-4 text-emerald-400" />
+              <span>مدارس و کادر آموزشی</span>
             </Link>
             <Link
               href="/evaluator/timesheets"

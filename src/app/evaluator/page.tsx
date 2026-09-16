@@ -29,7 +29,7 @@ export default async function EvaluatorDashboardPage() {
       where: { evaluatorId: user.id },
     }),
     prisma.school.count({
-      where: { createdById: user.id },
+      where: { assignedEvaluatorId: user.id },
     }),
     prisma.teacherEvaluation.findMany({
       where: { evaluatorId: user.id },
@@ -65,91 +65,51 @@ export default async function EvaluatorDashboardPage() {
             سلام، {user.fullName}
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
-            به پنل ارزیابی شایستگی‌های شبکه‌ای معلمان و شناسنامه مدارس خوش آمدید. از این بخش می‌توانید فرم‌های سنجش ۵ محوره را ثبت یا مدارس همکار را شناسنامه‌دار کنید.
+            به پنل ارزیابی شایستگی‌های شبکه‌ای معلمان خوش آمدید. از بخش مدارس و کادر آموزشی می‌توانید معلمان مدارس تخصیص‌یافته به خود را ارزیابی کرده و در بخش ثبت ساعت کاری، ساعات فعالیت خود و دستیاران را ثبت فرمایید.
           </p>
         </div>
       </div>
 
-      {/* عملیات‌های سریع */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* عملیات‌های مجاز ارزیاب: مدارس و کادر آموزشی + ثبت ساعت کاری */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Link
           href="/evaluator/schools"
-          className="group p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition flex items-center justify-between"
+          className="group p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-lg hover:border-emerald-400 transition flex items-center justify-between"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
-              <School className="w-6 h-6" />
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
+              <School className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition">
+              <h3 className="font-bold text-base text-slate-900 group-hover:text-emerald-700 transition">
                 مدارس و کادر آموزشی
               </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                انتخاب مدرسه و ثبت کادر
+              <p className="text-xs text-slate-500 mt-1">
+                مشاهده مدارس تخصیص‌یافته و ثبت ارزیابی معلمان
               </p>
             </div>
           </div>
-          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
-        </Link>
-
-        <Link
-          href="/evaluator/evaluate"
-          className="group p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-300 transition flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
-              <ClipboardPenLine className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-sm text-slate-900 group-hover:text-indigo-700 transition">
-                ارزیابی فرد جدید
-              </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                معلم، مشاور، معاون
-              </p>
-            </div>
-          </div>
-          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
+          <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
         </Link>
 
         <Link
           href="/evaluator/timesheets"
-          className="group p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-purple-300 transition flex items-center justify-between"
+          className="group p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-lg hover:border-purple-400 transition flex items-center justify-between"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
-              <Clock className="w-6 h-6" />
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
+              <Clock className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-slate-900 group-hover:text-purple-700 transition">
+              <h3 className="font-bold text-base text-slate-900 group-hover:text-purple-700 transition">
                 ثبت ساعت کاری
               </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                برای خود و کمک‌ارزیاب
+              <p className="text-xs text-slate-500 mt-1">
+                ثبت لاگ کارکرد برای خود و کمک‌ارزیابان
               </p>
             </div>
           </div>
-          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
-        </Link>
-
-        <Link
-          href="/evaluator/schools/new"
-          className="group p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md hover:border-sky-300 transition flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center group-hover:scale-105 transition shrink-0">
-              <PlusCircle className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-sm text-slate-900 group-hover:text-sky-700 transition">
-                شناسنامه مدرسه
-              </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                ظرفیت علوم انسانی
-              </p>
-            </div>
-          </div>
-          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-sky-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
+          <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-purple-600 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition" />
         </Link>
       </div>
 
@@ -168,9 +128,9 @@ export default async function EvaluatorDashboardPage() {
 
         <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1">مدارس ثبت‌شده</p>
+            <p className="text-xs font-semibold text-slate-500 mb-1">مدارس تخصیص‌یافته به من</p>
             <h3 className="text-2xl font-bold text-slate-900">{schoolsCount}</h3>
-            <p className="text-[11px] text-sky-600 font-medium mt-1">پروفایل و شناسنامه</p>
+            <p className="text-[11px] text-sky-600 font-medium mt-1">تحت ارزیابی</p>
           </div>
           <div className="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
             <School className="w-5 h-5" />

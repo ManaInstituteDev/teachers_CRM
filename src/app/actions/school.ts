@@ -86,6 +86,7 @@ export async function createBasicSchoolAction(prevState: any, formData: FormData
   const ownershipType = (formData.get("ownershipType") as SchoolOwnership) || "GOVERNMENTAL";
   const admissionType = (formData.get("admissionType") as AdmissionType) || "PUBLIC";
   const notes = formData.get("notes") as string;
+  const assignedEvaluatorId = formData.get("assignedEvaluatorId") as string;
 
   if (!name || !district) {
     return { error: "نام مدرسه و منطقه آموزش و پرورش الزامی هستند." };
@@ -107,11 +108,13 @@ export async function createBasicSchoolAction(prevState: any, formData: FormData
         notes: notes ? notes.trim() : null,
         dominantApproach: "EDUCATIONAL_CULTURAL",
         createdById: user.id,
+        assignedEvaluatorId: assignedEvaluatorId ? assignedEvaluatorId.trim() : null,
       },
     });
 
     revalidatePath("/admin/schools");
     revalidatePath("/evaluator/schools");
+    revalidatePath("/evaluator");
     redirect("/admin/schools");
   } catch (err: any) {
     if (err.message === "NEXT_REDIRECT") {
@@ -121,6 +124,34 @@ export async function createBasicSchoolAction(prevState: any, formData: FormData
       return { error: "کد مدرسه وارد شده قبلاً در سیستم ثبت شده است." };
     }
     return { error: "خطا در ثبت مدرسه: " + (err.message || "مجدداً تلاش کنید.") };
+  }
+}
+
+export async function assignSchoolEvaluatorAction(schoolId: string, evaluatorId: string | null) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "فقط مدیر ارشد سیستم مجاز به تخصیص مدرسه به ارزیاب است." };
+  }
+
+  if (!schoolId) {
+    return { error: "شناسه مدرسه مشخص نشده است." };
+  }
+
+  try {
+    await prisma.school.update({
+      where: { id: schoolId },
+      data: {
+        assignedEvaluatorId: evaluatorId && evaluatorId !== "NONE" ? evaluatorId : null,
+      },
+    });
+
+    revalidatePath("/admin/schools");
+    revalidatePath(`/admin/schools/${schoolId}`);
+    revalidatePath("/evaluator/schools");
+    revalidatePath("/evaluator");
+    return { success: true };
+  } catch (err: any) {
+    return { error: "خطا در تخصیص ارزیاب: " + (err.message || "مجدداً تلاش کنید.") };
   }
 }
 

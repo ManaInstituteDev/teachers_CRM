@@ -11,7 +11,9 @@ import {
   Users,
   CheckCircle,
   FileText,
+  UserCheck,
 } from "lucide-react";
+import { AssignEvaluatorForm } from "@/components/admin/AssignEvaluatorForm";
 
 export const dynamic = "force-dynamic";
 
@@ -22,20 +24,28 @@ export default async function SchoolDetailPage({
 }) {
   const { id } = await params;
 
-  const school = await prisma.school.findUnique({
-    where: { id },
-    include: {
-      createdBy: true,
-      teachers: {
-        include: {
-          evaluations: {
-            orderBy: { createdAt: "desc" },
-            take: 1,
+  const [school, evaluators] = await Promise.all([
+    prisma.school.findUnique({
+      where: { id },
+      include: {
+        createdBy: true,
+        assignedEvaluator: true,
+        teachers: {
+          include: {
+            evaluations: {
+              orderBy: { createdAt: "desc" },
+              take: 1,
+            },
           },
         },
       },
-    },
-  });
+    }),
+    prisma.user.findMany({
+      where: { role: "EVALUATOR", isActive: true },
+      select: { id: true, fullName: true, username: true },
+      orderBy: { fullName: "asc" },
+    }),
+  ]);
 
   if (!school) {
     notFound();
@@ -172,9 +182,29 @@ export default async function SchoolDetailPage({
             <strong className="text-slate-800">{getApproachLabel(school.dominantApproach)}</strong>
           </div>
           <div>
-            <span className="text-slate-400 block mb-1">ارزیاب ثبت‌کننده:</span>
+            <span className="text-slate-400 block mb-1">ارزیاب ثبت‌کننده اولیه:</span>
             <strong className="text-slate-800">{school.createdBy?.fullName || "—"}</strong>
           </div>
+        </div>
+
+        {/* انتساب ارزیاب متصل (کارتابل) */}
+        <div className="mt-5 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span className="text-emerald-950 font-bold text-xs flex items-center gap-1.5">
+              <UserCheck className="w-4 h-4 text-emerald-600" />
+              <span>ارزیاب مسئول متصل (این مدرسه در کارتابل این ارزیاب قرار دارد):</span>
+            </span>
+            <p className="text-[11px] text-emerald-700 mt-0.5">
+              {school.assignedEvaluator
+                ? `تخصیص‌یافته به ${school.assignedEvaluator.fullName} (${school.assignedEvaluator.username})`
+                : "در حال حاضر هیچ ارزیابی به این مدرسه متصل نیست."}
+            </p>
+          </div>
+          <AssignEvaluatorForm
+            schoolId={school.id}
+            currentEvaluatorId={school.assignedEvaluatorId}
+            evaluators={evaluators}
+          />
         </div>
 
         {school.address && (
