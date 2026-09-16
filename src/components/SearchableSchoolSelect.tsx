@@ -9,6 +9,7 @@ export interface SchoolOption {
   district?: string | null;
   code?: string | null;
   city?: string | null;
+  aliases?: string[];
 }
 
 interface SearchableSchoolSelectProps {
@@ -79,7 +80,8 @@ export function SearchableSchoolSelect({
     const districtMatch = s.district ? s.district.toLowerCase().includes(q) : false;
     const codeMatch = s.code ? s.code.toLowerCase().includes(q) : false;
     const cityMatch = s.city ? s.city.toLowerCase().includes(q) : false;
-    return nameMatch || districtMatch || codeMatch || cityMatch;
+    const aliasesMatch = s.aliases ? s.aliases.some((a) => a.toLowerCase().includes(q)) : false;
+    return nameMatch || districtMatch || codeMatch || cityMatch || aliasesMatch;
   });
 
   const handleSelect = (id: string) => {

@@ -34,6 +34,9 @@ export default async function EvaluatorSchoolDetailPage({
   const school = await prisma.school.findUnique({
     where: { id },
     include: {
+      referrers: {
+        orderBy: { createdAt: "asc" },
+      },
       teachers: {
         orderBy: { createdAt: "desc" },
         include: {
@@ -152,39 +155,81 @@ export default async function EvaluatorSchoolDetailPage({
         </div>
 
         {/* مشخصات معرف مدرسه (راهنمای مراجعه و معرفی ارزیاب) */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50/50 border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-start sm:items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 shadow-2xs">
-              <UserCheck className="w-5 h-5" />
-            </div>
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-amber-950 text-xs sm:text-sm">
-                  معرف این مدرسه:
-                </span>
-                <span className="font-extrabold text-amber-900 bg-white/90 px-2.5 py-0.5 rounded-lg border border-amber-300/70 text-xs sm:text-sm">
-                  {school.referrerName || "ثبت نشده"}
-                </span>
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50/50 border border-amber-200/90 space-y-3 text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 shadow-2xs">
+                <UserCheck className="w-5 h-5" />
               </div>
-              <p className="text-[11px] text-amber-800 leading-relaxed">
-                {school.referrerName
-                  ? `هنگام مراجعه به این مدرسه، جهت سهولت در پذیرش خود را به عنوان ارزیابِ معرفی‌شده از طرف «${school.referrerName}» معرفی فرمایید.`
-                  : "معرف خاصی برای این مدرسه ثبت نشده است. هماهنگی را مستقیماً با مدیر مدرسه انجام دهید."}
-              </p>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-amber-950 text-xs sm:text-sm">
+                    معرف(های) این مدرسه:
+                  </span>
+                  <span className="font-extrabold text-amber-900 bg-white/90 px-2.5 py-0.5 rounded-lg border border-amber-300/70 text-xs sm:text-sm">
+                    {school.referrerName || (school.referrers.length > 0 ? school.referrers[0].fullName : "ثبت نشده")}
+                  </span>
+                </div>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  {school.referrers.length > 0
+                    ? `هنگام مراجعه به این مدرسه، جهت سهولت در پذیرش خود را به عنوان ارزیابِ معرفی‌شده از طرف معرف‌های زیر معرفی فرمایید.`
+                    : "معرف خاصی برای این مدرسه ثبت نشده است. هماهنگی را مستقیماً با مدیر مدرسه انجام دهید."}
+                </p>
+              </div>
             </div>
+
+            {school.referrerPhone && school.referrers.length <= 1 && (
+              <div className="flex items-center gap-2 shrink-0 bg-white border border-amber-200/80 px-3.5 py-2 rounded-xl shadow-2xs self-start sm:self-auto">
+                <Phone className="w-3.5 h-3.5 text-amber-600" />
+                <span className="text-[11px] text-slate-500 font-medium">شماره تماس:</span>
+                <a
+                  href={`tel:${school.referrerPhone}`}
+                  className="font-bold text-amber-900 font-mono hover:underline text-xs"
+                  dir="ltr"
+                >
+                  {school.referrerPhone}
+                </a>
+              </div>
+            )}
           </div>
 
-          {school.referrerPhone && (
-            <div className="flex items-center gap-2 shrink-0 bg-white border border-amber-200/80 px-3.5 py-2 rounded-xl shadow-2xs self-start sm:self-auto">
-              <Phone className="w-3.5 h-3.5 text-amber-600" />
-              <span className="text-[11px] text-slate-500 font-medium">شماره تماس معرف:</span>
-              <a
-                href={`tel:${school.referrerPhone}`}
-                className="font-bold text-amber-900 font-mono hover:underline text-xs"
-                dir="ltr"
-              >
-                {school.referrerPhone}
-              </a>
+          {/* لیست کامل معرف‌های مدرسه */}
+          {school.referrers && school.referrers.length > 0 && (
+            <div className="pt-2.5 border-t border-amber-200/70 space-y-2">
+              <div className="text-[11px] font-bold text-amber-900 flex items-center justify-between">
+                <span>لیست معرف‌های ثبت‌شده ({school.referrers.length} نفر):</span>
+                <span className="text-[10px] text-amber-700 font-normal">برای تماس سریع روی شماره کلیک کنید</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {school.referrers.map((ref) => (
+                  <div
+                    key={ref.id}
+                    className="p-2.5 rounded-xl bg-white/95 border border-amber-200/80 flex items-center justify-between gap-2 shadow-2xs hover:border-amber-400 transition"
+                  >
+                    <div className="truncate">
+                      <div className="font-bold text-amber-950 text-xs truncate">
+                        {ref.fullName}
+                      </div>
+                      {ref.notes && (
+                        <div className="text-[10px] text-slate-400 truncate">
+                          {ref.notes}
+                        </div>
+                      )}
+                    </div>
+                    {ref.phone && (
+                      <a
+                        href={`tel:${ref.phone}`}
+                        className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-amber-900 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-lg border border-amber-200/80 transition shrink-0"
+                        dir="ltr"
+                        title="تماس مستقیم با معرف"
+                      >
+                        <Phone className="w-3 h-3 text-amber-600" />
+                        <span>{ref.phone}</span>
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

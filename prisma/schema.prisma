@@ -159,6 +159,9 @@ model School {
   // زمینه‌های ظرفیت دانش‌آموزان
   studentCapacities    String[]          @default([])
 
+  // املاها و نام‌های جایگزین مدرسه جهت جستجوی دقیق
+  aliases              String[]          @default([])
+
   // میزان آمادگی مدرسه برای اجرای برنامه‌های علوم انسانی
   humanitiesReadinessLevel String?       @db.Text
 
@@ -184,8 +187,24 @@ model School {
 
   teachers        Teacher[]
   timesheets      TimesheetLog[]
+  referrers       SchoolReferrer[]
 
   @@map("schools")
+}
+
+model SchoolReferrer {
+  id        String   @id @default(cuid())
+  fullName  String   // نام معرف
+  phone     String?  // شماره تماس
+  notes     String?  // یادداشت یا سمت
+
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("school_referrers")
 }
 
 enum CollaborationStatus {
