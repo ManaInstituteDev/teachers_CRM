@@ -102,7 +102,7 @@ export default async function EvaluatorDashboardPage() {
             </div>
             <div>
               <h3 className="font-bold text-base text-slate-900 group-hover:text-purple-700 transition">
-                ثبت ساعت کاری
+                ثبت فعالیت
               </h3>
               <p className="text-xs text-slate-500 mt-1">
                 ثبت لاگ کارکرد برای خود و کمک‌ارزیابان
@@ -114,7 +114,7 @@ export default async function EvaluatorDashboardPage() {
       </div>
 
       {/* آمار خلاصه من */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 mb-1">ارزیابی‌های ثبت‌شده</p>
@@ -134,17 +134,6 @@ export default async function EvaluatorDashboardPage() {
           </div>
           <div className="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
             <School className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1">ساعت کارکرد ثبت‌شده</p>
-            <h3 className="text-2xl font-bold text-slate-900">{totalHours} <span className="text-xs font-normal text-slate-400">ساعت</span></h3>
-            <p className="text-[11px] text-purple-600 font-medium mt-1">خود و کمک‌ارزیاب</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-            <Clock className="w-5 h-5" />
           </div>
         </div>
 

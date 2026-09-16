@@ -97,7 +97,7 @@ export default async function AdminLayout({
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-800 hover:text-white transition"
             >
               <School className="w-4 h-4 text-sky-400" />
-              <span>شناسنامه مدارس</span>
+              <span>گزارش و شناسنامه مدارس</span>
             </Link>
           </nav>
         </div>

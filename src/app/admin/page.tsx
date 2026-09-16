@@ -110,6 +110,14 @@ export default async function AdminDashboardPage() {
 
         <div className="flex items-center gap-2.5 flex-wrap">
           <Link
+            href="/admin/schools"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold shadow-sm transition"
+          >
+            <School className="w-4 h-4 text-sky-600" />
+            <span>گزارش مدارس</span>
+          </Link>
+
+          <Link
             href="/admin/analytics"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold shadow-sm transition"
           >
