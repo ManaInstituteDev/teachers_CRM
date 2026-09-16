@@ -24,6 +24,7 @@ import {
   Share2,
   Briefcase,
 } from "lucide-react";
+import { SearchableSchoolSelect } from "@/components/SearchableSchoolSelect";
 
 interface SchoolOption {
   id: string;
@@ -353,19 +354,14 @@ export default function EvaluationFormClient({
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     مدرسه محل خدمت
                   </label>
-                  <select
+                  <SearchableSchoolSelect
+                    schools={schools}
                     name="schoolId"
                     value={selectedSchoolId}
-                    onChange={(e) => setSelectedSchoolId(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
-                  >
-                    <option value="">-- انتخاب از مدارس ثبت‌شده یا ورود دستی --</option>
-                    {schools.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name} ({s.district})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(id) => setSelectedSchoolId(id)}
+                    noneLabel="-- انتخاب از مدارس ثبت‌شده یا ورود دستی --"
+                    placeholder="جستجوی نام یا منطقه مدرسه..."
+                  />
                 </div>
 
                 <div className="sm:col-span-2">

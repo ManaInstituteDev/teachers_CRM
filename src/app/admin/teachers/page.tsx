@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import SearchableEvaluatorSelect from "@/components/SearchableEvaluatorSelect";
+import { SearchableSchoolSelect } from "@/components/SearchableSchoolSelect";
 import { ExportDataButton } from "@/components/admin/ExportDataButton";
 import { AxisQualitativeFilter } from "@/components/admin/AxisQualitativeFilter";
 import {
@@ -54,6 +55,7 @@ export default async function AdminTeachersPage({
   const status = params.status || "ALL";
   const evaluatorId = params.evaluatorId || "ALL";
   const roleTitle = params.roleTitle || "ALL";
+  const schoolId = params.schoolId || "ALL";
   const sortBy = params.sortBy || "totalScore"; // totalScore, axis1, axis2, axis3, axis4, axis5, teachingYears, createdAt, name
   const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
   const minScore = params.minScore ? parseFloat(params.minScore) : null;
@@ -77,6 +79,12 @@ export default async function AdminTeachersPage({
     orderBy: { fullName: "asc" },
   });
 
+  // دریافت لیست مدارس جهت دراپ‌داون فیلتر با پشتیبانی از سرچ
+  const schools = await prisma.school.findMany({
+    select: { id: true, name: true, district: true, code: true, city: true },
+    orderBy: { name: "asc" },
+  });
+
   // ساخت شرط‌های فیلتر
   const whereClause: any = {};
 
@@ -97,6 +105,10 @@ export default async function AdminTeachersPage({
 
   if (roleTitle && roleTitle !== "ALL") {
     whereClause.roleTitle = roleTitle;
+  }
+
+  if (schoolId && schoolId !== "ALL") {
+    whereClause.schoolId = schoolId;
   }
 
   // فیلتر بر اساس ارزیابی‌ها
@@ -287,6 +299,7 @@ export default async function AdminTeachersPage({
     if (status !== "ALL") currentParams.set("status", status);
     if (roleTitle !== "ALL") currentParams.set("roleTitle", roleTitle);
     if (evaluatorId !== "ALL") currentParams.set("evaluatorId", evaluatorId);
+    if (schoolId !== "ALL") currentParams.set("schoolId", schoolId);
     if (minScore !== null) currentParams.set("minScore", String(minScore));
     if (maxScore !== null) currentParams.set("maxScore", String(maxScore));
     if (minAxis1 !== null) currentParams.set("minAxis1", String(minAxis1));
@@ -431,8 +444,8 @@ export default async function AdminTeachersPage({
             </div>
           </div>
 
-          {/* ردیف دوم: انتخاب وضعیت، نقش، ارزیاب، مرتب‌سازی و جهت */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-2 border-t border-slate-100">
+          {/* ردیف دوم: انتخاب وضعیت، نقش، ارزیاب، مدرسه، مرتب‌سازی و جهت */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-2 border-t border-slate-100">
             {/* فیلتر وضعیت همکاری */}
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1">
@@ -483,6 +496,22 @@ export default async function AdminTeachersPage({
                 defaultValue={evaluatorId}
                 name="evaluatorId"
                 placeholder="جستجوی نام یا نام‌کاربری ارزیاب..."
+              />
+            </div>
+
+            {/* فیلتر مدرسه با قابلیت سرچ در باکس */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">
+                مدرسه (سرچ‌دار):
+              </label>
+              <SearchableSchoolSelect
+                schools={schools}
+                defaultValue={schoolId}
+                name="schoolId"
+                noneValue="ALL"
+                noneLabel="همه مدارس"
+                placeholder="جستجوی نام یا منطقه مدرسه..."
+                buttonClassName="bg-slate-50 border-slate-200 rounded-xl min-h-[36px] py-1.5 text-xs"
               />
             </div>
 
@@ -611,6 +640,7 @@ export default async function AdminTeachersPage({
                   if (q) p.set("q", q);
                   if (status !== "ALL") p.set("status", status);
                   if (evaluatorId !== "ALL") p.set("evaluatorId", evaluatorId);
+                  if (schoolId !== "ALL") p.set("schoolId", schoolId);
                   if (roleTitle !== "ALL") p.set("roleTitle", roleTitle);
                   if (sortBy) p.set("sortBy", sortBy);
                   if (sortOrder) p.set("sortOrder", sortOrder);

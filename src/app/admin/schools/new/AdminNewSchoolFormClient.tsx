@@ -11,6 +11,7 @@ import {
   UserCheck,
   CheckCircle2,
 } from "lucide-react";
+import SearchableEvaluatorSelect from "@/components/SearchableEvaluatorSelect";
 
 interface EvaluatorOption {
   id: string;
@@ -66,18 +67,15 @@ export function AdminNewSchoolFormClient({
               <UserCheck className="w-4 h-4 text-emerald-600" />
               <span>ارزیاب متصل به این مدرسه (لینک به کارتابل ارزیاب)</span>
             </label>
-            <select
+            <SearchableEvaluatorSelect
+              evaluators={evaluators}
               name="assignedEvaluatorId"
               defaultValue=""
-              className="w-full bg-white border border-emerald-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition font-medium"
-            >
-              <option value="">-- بدون انتساب فعلی (مدرسه در کارتابل هیچ ارزیابی نمایش داده نمی‌شود) --</option>
-              {evaluators.map((ev) => (
-                <option key={ev.id} value={ev.id}>
-                  {ev.fullName} (نام کاربری: {ev.username}{ev.phone ? ` - تلفن: ${ev.phone}` : ""})
-                </option>
-              ))}
-            </select>
+              noneValue=""
+              noneLabel="-- بدون انتساب فعلی (مدرسه در کارتابل هیچ ارزیابی نمایش داده نمی‌شود) --"
+              placeholder="جستجوی نام یا نام‌کاربری ارزیاب..."
+              buttonClassName="bg-white border-emerald-300 focus:border-emerald-600 rounded-xl"
+            />
             <p className="text-[11px] text-emerald-700 leading-relaxed">
               با انتخاب ارزیاب، این مدرسه منحصراً در پنل و کارتابل آن ارزیاب قابل مشاهده خواهد بود و او می‌تواند کادر مدرسه را ارزیابی کند.
             </p>

@@ -2,13 +2,8 @@
 
 import { useState } from "react";
 import { assignSchoolEvaluatorAction } from "@/app/actions/school";
-import { UserCheck, Check, Loader2 } from "lucide-react";
-
-interface EvaluatorOption {
-  id: string;
-  fullName: string;
-  username: string;
-}
+import { Check, Loader2 } from "lucide-react";
+import SearchableEvaluatorSelect, { EvaluatorOption } from "@/components/SearchableEvaluatorSelect";
 
 export function AssignEvaluatorForm({
   schoolId,
@@ -25,12 +20,13 @@ export function AssignEvaluatorForm({
   const [error, setError] = useState<string | null>(null);
 
   const handleAssign = async (evaluatorId: string) => {
-    setSelectedId(evaluatorId);
+    const cleanId = evaluatorId === "ALL" ? "" : evaluatorId;
+    setSelectedId(cleanId);
     setLoading(true);
     setError(null);
     setSaved(false);
 
-    const res = await assignSchoolEvaluatorAction(schoolId, evaluatorId || null);
+    const res = await assignSchoolEvaluatorAction(schoolId, cleanId || null);
     setLoading(false);
     if (res?.error) {
       setError(res.error);
@@ -42,20 +38,17 @@ export function AssignEvaluatorForm({
 
   return (
     <div className="flex items-center gap-2">
-      <div className="relative">
-        <select
+      <div className="min-w-[190px]">
+        <SearchableEvaluatorSelect
+          evaluators={evaluators}
           value={selectedId}
+          onChange={handleAssign}
+          noneValue=""
+          noneLabel="-- بدون ارزیاب متصل --"
+          placeholder="جستجوی نام یا نام‌کاربری ارزیاب..."
+          buttonClassName="bg-white border-slate-300 hover:border-emerald-400 focus:border-emerald-500 rounded-xl"
           disabled={loading}
-          onChange={(e) => handleAssign(e.target.value)}
-          className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none transition cursor-pointer min-w-[170px]"
-        >
-          <option value="">-- بدون ارزیاب متصل --</option>
-          {evaluators.map((ev) => (
-            <option key={ev.id} value={ev.id}>
-              {ev.fullName}
-            </option>
-          ))}
-        </select>
+        />
       </div>
       {loading && <Loader2 className="w-4 h-4 text-emerald-600 animate-spin shrink-0" />}
       {saved && (

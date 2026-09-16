@@ -3,6 +3,8 @@
 import { useActionState, useState } from "react";
 import { logTimesheetAction } from "@/app/actions/timesheet";
 import { CheckCircle2, AlertCircle, Clock, UserCheck, Users, School } from "lucide-react";
+import { SearchableAssistantSelect } from "@/components/SearchableAssistantSelect";
+import { SearchableSchoolSelect } from "@/components/SearchableSchoolSelect";
 
 interface AssistantOption {
   id: string;
@@ -87,18 +89,13 @@ export default function TimesheetFormClient({
               هنوز هیچ کمک‌ارزیابی توسط مدیریت به شما متصل نشده است.
             </div>
           ) : (
-            <select
+            <SearchableAssistantSelect
+              assistants={assistants}
               name="assistantEvaluatorId"
-              required
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:border-indigo-500 outline-none"
-            >
-              <option value="">-- انتخاب کمک‌ارزیاب --</option>
-              {assistants.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.fullName}
-                </option>
-              ))}
-            </select>
+              required={true}
+              noneLabel="-- انتخاب کمک‌ارزیاب همکار --"
+              placeholder="جستجوی نام کمک‌ارزیاب..."
+            />
           )}
         </div>
       )}
@@ -153,17 +150,12 @@ export default function TimesheetFormClient({
         <label className="block text-xs font-semibold text-slate-700 mb-1.5">
           مدرسه محل فعالیت (اختیاری)
         </label>
-        <select
+        <SearchableSchoolSelect
+          schools={schools}
           name="schoolId"
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:border-indigo-500 outline-none"
-        >
-          <option value="">-- انتخاب مدرسه (در صورت ارتباط) --</option>
-          {schools.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name} ({s.district})
-            </option>
-          ))}
-        </select>
+          noneLabel="-- بدون انتساب به مدرسه / فعالیت عمومی --"
+          placeholder="جستجوی نام یا منطقه مدرسه..."
+        />
       </div>
 
       {/* شرح فعالیت */}

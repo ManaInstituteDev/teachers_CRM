@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { AssignEvaluatorForm } from "@/components/admin/AssignEvaluatorForm";
 import { ExportDataButton } from "@/components/admin/ExportDataButton";
+import SearchableEvaluatorSelect from "@/components/SearchableEvaluatorSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -635,19 +636,16 @@ export default async function AdminSchoolsPage({
               <label className="block text-[11px] font-bold text-slate-600 mb-1">
                 ارزیاب مسئول (کارتابل):
               </label>
-              <select
-                name="evaluatorId"
+              <SearchableEvaluatorSelect
+                evaluators={evaluators}
                 defaultValue={evaluatorId}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:border-indigo-500 transition cursor-pointer"
-              >
-                <option value="ALL">همه ارزیاب‌ها</option>
-                <option value="UNASSIGNED">❌ بدون ارزیاب متصل</option>
-                {evaluators.map((ev) => (
-                  <option key={ev.id} value={ev.id}>
-                    {ev.fullName} ({ev.username})
-                  </option>
-                ))}
-              </select>
+                name="evaluatorId"
+                noneValue="ALL"
+                noneLabel="همه ارزیاب‌ها"
+                includeUnassigned={true}
+                unassignedLabel="❌ بدون ارزیاب متصل"
+                placeholder="جستجوی نام یا نام‌کاربری..."
+              />
             </div>
 
             {/* فیلتر نوع مالکیت */}
@@ -761,7 +759,7 @@ export default async function AdminSchoolsPage({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto min-h-[420px] pb-20">
           <table className="w-full text-right text-sm">
             <thead className="bg-slate-50/90 text-slate-600 border-b border-slate-200/80 text-xs font-bold select-none">
               <tr>
