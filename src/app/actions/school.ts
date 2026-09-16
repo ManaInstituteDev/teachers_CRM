@@ -239,4 +239,66 @@ export async function updateSchoolReferrerAction(
   }
 }
 
+export async function addSchoolReferrerAction(
+  schoolId: string,
+  fullName: string,
+  phone?: string | null,
+  notes?: string | null
+) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "فقط مدیر ارشد سیستم مجاز به مدیریت معرف‌های مدرسه است." };
+  }
+  if (!schoolId) {
+    return { error: "شناسه مدرسه مشخص نشده است." };
+  }
+  if (!fullName || !fullName.trim()) {
+    return { error: "نام و نام خانوادگی معرف الزامی است." };
+  }
+
+  try {
+    await prisma.schoolReferrer.create({
+      data: {
+        schoolId,
+        fullName: fullName.trim(),
+        phone: phone ? phone.trim() : null,
+        notes: notes ? notes.trim() : null,
+      },
+    });
+
+    revalidatePath("/admin/schools");
+    revalidatePath(`/admin/schools/${schoolId}`);
+    revalidatePath("/evaluator/schools");
+    revalidatePath(`/evaluator/schools/${schoolId}`);
+    return { success: true };
+  } catch (err: any) {
+    return { error: "خطا در افزودن معرف: " + (err.message || "مجدداً تلاش کنید.") };
+  }
+}
+
+export async function deleteSchoolReferrerAction(referrerId: string, schoolId: string) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "فقط مدیر ارشد سیستم مجاز به حذف معرف مدرسه است." };
+  }
+  if (!referrerId || !schoolId) {
+    return { error: "شناسه نامعتبر است." };
+  }
+
+  try {
+    await prisma.schoolReferrer.delete({
+      where: { id: referrerId },
+    });
+
+    revalidatePath("/admin/schools");
+    revalidatePath(`/admin/schools/${schoolId}`);
+    revalidatePath("/evaluator/schools");
+    revalidatePath(`/evaluator/schools/${schoolId}`);
+    return { success: true };
+  } catch (err: any) {
+    return { error: "خطا در حذف معرف: " + (err.message || "مجدداً تلاش کنید.") };
+  }
+}
+
+
 
