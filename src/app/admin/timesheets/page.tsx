@@ -38,6 +38,15 @@ interface SearchParamsProps {
   sortOrder?: string; // asc, desc
 }
 
+function formatHoursMinutes(totalMinutes: number) {
+  const h = Math.floor(totalMinutes / 60);
+  const m = Math.round(totalMinutes % 60);
+  if (h === 0 && m === 0) return "۰ دقیقه";
+  if (h === 0) return `${m} دقیقه`;
+  if (m === 0) return `${h} ساعت`;
+  return `${h} س و ${m} د`;
+}
+
 export default async function AdminTimesheetsPage({
   searchParams,
 }: {
@@ -115,10 +124,9 @@ export default async function AdminTimesheetsPage({
     const evaluatedTeachersCount = ev.teacherEvaluations.length;
 
     // محاسبه نرم استاندارد ساعت کارکرد:
-    // ۲.۵ ساعت به ازای هر مدرسه + ۱.۵ ساعت به ازای هر معلم ارزیابی‌شده
-    const normHours = Number(
-      (schoolsCount * 2.5 + evaluatedTeachersCount * 1.5).toFixed(1)
-    );
+    // به ازای هر مدرسه ۱۰۵ دقیقه (۱ ساعت و ۴۵ دقیقه) + به ازای هر معلم ۴۰ دقیقه
+    const normMinutes = schoolsCount * 105 + evaluatedTeachersCount * 40;
+    const normHours = Number((normMinutes / 60).toFixed(1));
 
     // ساعت‌های ثبت‌شده
     const selfMinutes = ev.timesheets
@@ -157,14 +165,14 @@ export default async function AdminTimesheetsPage({
     let normRatio = 0;
     let normStatus: "RUSHED" | "NORMAL" | "EXCESSIVE" | "NO_EVAL" = "NORMAL";
 
-    if (normHours === 0) {
+    if (normMinutes === 0) {
       normStatus = "NO_EVAL";
     } else {
-      normRatio = Math.round((totalRecordedHours / normHours) * 100);
+      normRatio = Math.round((totalRecordedMinutes / normMinutes) * 100);
       if (normRatio < 70) {
-        normStatus = "RUSHED"; // شتاب‌زده / وقت ناکافی
+        normStatus = "RUSHED"; // شتاب‌زده / وقت ناکافی (کمتر از ۷۰٪)
       } else if (normRatio > 130) {
-        normStatus = "EXCESSIVE"; // بیش از حد / اتلاف وقت احتمالی
+        normStatus = "EXCESSIVE"; // بیش از حد / اتلاف وقت احتمالی (بیش از ۱۳۰٪)
       } else {
         normStatus = "NORMAL"; // متعادل و استاندارد
       }
@@ -179,7 +187,9 @@ export default async function AdminTimesheetsPage({
       assistantsCount: ev.assistants.length,
       schoolsCount,
       evaluatedTeachersCount,
+      normMinutes,
       normHours,
+      normText: formatHoursMinutes(normMinutes),
       selfHours: Number((selfMinutes / 60).toFixed(1)),
       assistantHours: Number((assistantMinutes / 60).toFixed(1)),
       totalRecordedHours,
@@ -280,14 +290,15 @@ export default async function AdminTimesheetsPage({
     "شماره شبا",
     "تعداد مدارس ارزیابی‌شده / تخصیص‌یافته",
     "تعداد افراد (معلمان) ارزیابی‌شده",
-    "نرم ساعت استاندارد کارکرد (ساعت)",
+    "نرم ساعت استاندارد (ساعت)",
+    "نرم تفصیلی (ساعت و دقیقه)",
     "ساعت فعالیت ثبت‌شده (ساعت)",
     "ساعت فعالیت تایید شده مدیر (ساعت)",
     "ساعت خود ارزیاب (ساعت)",
     "ساعت کمک‌ارزیابان (ساعت)",
     "وضعیت انطباق با نرم کارکرد",
     "درصد نسبت به نرم استاندارد",
-    "تعداد ساعت‌های در انتظار تایید",
+    "تعداد لاگ‌های در انتظار تایید",
   ];
 
   const evaluatorsSummaryExportRows = evaluatorBreakdowns.map((b) => [
@@ -298,6 +309,7 @@ export default async function AdminTimesheetsPage({
     b.schoolsCount,
     b.evaluatedTeachersCount,
     b.normHours,
+    b.normText,
     b.totalRecordedHours,
     b.totalApprovedHours,
     b.selfHours,
@@ -383,10 +395,10 @@ export default async function AdminTimesheetsPage({
               <span>نرم استاندارد کارشناسی ساعت کارکرد</span>
             </div>
             <h3 className="text-lg font-bold">
-              فرمول محاسبه نرم زمانی ارزیابی: (هر مدرسه × ۲.۵ ساعت) + (هر معلم × ۱.۵ ساعت)
+              فرمول محاسبه نرم زمانی ارزیابی: (هر مدرسه × ۱:۴۵ ساعت / ۱۰۵ دقیقه) + (هر معلم × ۴۰ دقیقه)
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              این نرم بر مبنای استاندارد مصاحبه عمیق معلمان و ارزیابی شناسنامه مدارس تعریف شده است. انحراف از این نرم به شما نشان می‌دهد کدام ارزیاب کار را <span className="text-rose-400 font-bold">شتاب‌زده</span> تحویل داده (کمتر از ۷۰٪ زمان لازم) و کدام ارزیاب زمان غیرعادی صرف کرده و دچار <span className="text-purple-300 font-bold">اتلاف وقت</span> شده است (بیش از ۱۳۰٪).
+              این نرم بر مبنای استاندارد تخصیص ۴۰ دقیقه برای مصاحبه و ارزیابی عمیق هر معلم و ۱۰۵ دقیقه (۱ ساعت و ۴۵ دقیقه) برای بررسی شناسنامه و امور هر مدرسه محاسبه می‌شود. انحراف از این نرم نشان می‌دهد کدام ارزیاب کار را <span className="text-rose-400 font-bold">شتاب‌زده</span> تحویل داده (کمتر از ۷۰٪ زمان لازم) و کدام ارزیاب دچار <span className="text-purple-300 font-bold">اتلاف وقت احتمالی</span> شده است (بیش از ۱۳۰٪ زمان استاندارد).
             </p>
           </div>
 
@@ -473,7 +485,11 @@ export default async function AdminTimesheetsPage({
               میزان تعدیل ساعت‌ها
             </p>
             <h3 className="text-3xl font-black text-purple-700">
-              {(Number(overallApprovedHours) - Number(overallRecordedHours)).toFixed(1)}{" "}
+              <span dir="ltr">
+                {Number(overallApprovedHours) - Number(overallRecordedHours) > 0
+                  ? `+${(Number(overallApprovedHours) - Number(overallRecordedHours)).toFixed(1)}`
+                  : (Number(overallApprovedHours) - Number(overallRecordedHours)).toFixed(1)}
+              </span>{" "}
               <span className="text-sm font-normal text-slate-400">ساعت</span>
             </h3>
             <p className="text-[11px] text-slate-500 font-medium mt-1">
@@ -539,22 +555,31 @@ export default async function AdminTimesheetsPage({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs sm:text-sm">
-            <thead className="bg-slate-50/90 text-slate-600 border-b border-slate-200/80 font-bold select-none">
+          <table className="min-w-[1150px] w-full text-right text-xs sm:text-sm border-collapse">
+            <thead className="bg-slate-50 text-slate-700 text-xs font-bold select-none border-b border-slate-200">
               <tr>
-                <th className="py-4 px-4 text-center w-12">#</th>
-                <th className="py-4 px-5">نام و نام خانوادگی ارزیاب</th>
-                <th className="py-4 px-5">شماره شبا جهت واریز</th>
-                <th className="py-4 px-4 text-center">مدارس ارزیابی‌شده</th>
-                <th className="py-4 px-4 text-center">افراد ارزیابی‌شده</th>
-                <th className="py-4 px-4 text-center">نرم استاندارد کارکرد</th>
-                <th className="py-4 px-4 text-center">ساعت فعالیت ثبت‌شده</th>
-                <th className="py-4 px-4 text-center">ساعت فعالیت تایید شده</th>
-                <th className="py-4 px-5 text-center">وضعیت انطباق با نرم</th>
-                <th className="py-4 px-5 text-left">عملیات تاییدیه</th>
+                <th className="py-4 px-3 text-center w-12 whitespace-nowrap text-slate-400">#</th>
+                <th className="py-4 px-4 whitespace-nowrap min-w-[210px]">ارزیاب</th>
+                <th className="py-4 px-4 whitespace-nowrap min-w-[170px]">شماره شبا (واریز)</th>
+                <th className="py-4 px-3 text-center whitespace-nowrap min-w-[100px]">مدارس</th>
+                <th className="py-4 px-3 text-center whitespace-nowrap min-w-[100px]">معلمان ارزیابی</th>
+                <th className="py-4 px-3 text-center whitespace-nowrap min-w-[125px]">
+                  نرم استاندارد
+                  <span className="block text-[10px] font-normal text-slate-400 mt-0.5">۱۰۵د مدرسه + ۴۰د معلم</span>
+                </th>
+                <th className="py-4 px-3 text-center whitespace-nowrap min-w-[120px]">
+                  کارکرد ثبت‌شده
+                  <span className="block text-[10px] font-normal text-slate-400 mt-0.5">ارزیاب و کمکیار</span>
+                </th>
+                <th className="py-4 px-3 text-center whitespace-nowrap min-w-[125px]">
+                  ساعت تایید مدیر
+                  <span className="block text-[10px] font-normal text-slate-400 mt-0.5">مصوب نهایی</span>
+                </th>
+                <th className="py-4 px-4 text-center whitespace-nowrap min-w-[155px]">وضعیت نسبت به نرم</th>
+                <th className="py-4 px-4 text-center whitespace-nowrap min-w-[125px]">عملیات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {evaluatorBreakdowns.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-slate-400 text-sm">
@@ -566,28 +591,39 @@ export default async function AdminTimesheetsPage({
                   const diff = Number((ev.totalApprovedHours - ev.totalRecordedHours).toFixed(1));
 
                   return (
-                    <tr key={ev.id} className="hover:bg-slate-50/60 transition group">
+                    <tr key={ev.id} className="hover:bg-slate-50/70 transition group">
                       {/* ردیف */}
-                      <td className="py-4 px-4 text-center font-bold text-slate-400 text-xs">
+                      <td className="py-4 px-3 text-center font-bold text-slate-400 text-xs whitespace-nowrap">
                         {index + 1}
                       </td>
 
                       {/* نام و مشخصات ارزیاب */}
-                      <td className="py-4 px-5 font-bold text-slate-900">
-                        <div className="text-sm font-black text-slate-900">{ev.name}</div>
-                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400 font-normal">
-                          <span>یوزر: {ev.username}</span>
-                          {ev.phone && <span dir="ltr">{ev.phone}</span>}
-                          {ev.assistantsCount > 0 && (
-                            <span className="text-sky-600 bg-sky-50 px-1.5 py-0.2 rounded font-medium">
-                              {ev.assistantsCount} کمک‌ارزیاب
-                            </span>
-                          )}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-700 font-black text-sm flex items-center justify-center border border-indigo-200/60 shrink-0">
+                            {ev.name.charAt(0)}
+                          </div>
+                          <div className="space-y-0.5">
+                            <div className="font-bold text-slate-900 text-sm leading-snug">{ev.name}</div>
+                            <div className="flex items-center gap-2 text-[11px] text-slate-500 font-normal">
+                              <span className="font-mono text-slate-400">@{ev.username}</span>
+                              {ev.phone && (
+                                <span className="font-mono text-slate-400" dir="ltr">
+                                  {ev.phone}
+                                </span>
+                              )}
+                              {ev.assistantsCount > 0 && (
+                                <span className="inline-flex items-center text-sky-700 bg-sky-50 border border-sky-200/70 px-1.5 py-0.2 rounded text-[10px] font-bold">
+                                  {ev.assistantsCount} کمکیار
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </td>
 
-                      {/* شماره شبا با قابلیت ویرایش آنی */}
-                      <td className="py-4 px-5">
+                      {/* شماره شبا */}
+                      <td className="py-4 px-4 whitespace-nowrap">
                         <QuickShebaEdit
                           userId={ev.id}
                           currentSheba={ev.shebaNumber}
@@ -595,107 +631,122 @@ export default async function AdminTimesheetsPage({
                         />
                       </td>
 
-                      {/* تعداد مدارس ارزیابی‌شده */}
-                      <td className="py-4 px-4 text-center">
-                        <span className="inline-flex items-center justify-center gap-1 font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-xl text-xs">
-                          <Building2 className="w-3 h-3 text-slate-400" />
-                          {ev.schoolsCount} مدرسه
+                      {/* تعداد مدارس */}
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 text-slate-800 font-bold text-xs whitespace-nowrap">
+                          <Building2 className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                          <span>{ev.schoolsCount} مدرسه</span>
                         </span>
                       </td>
 
-                      {/* تعداد افراد (معلمان) ارزیابی‌شده */}
-                      <td className="py-4 px-4 text-center">
-                        <span className="inline-flex items-center justify-center gap-1 font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-2.5 py-1 rounded-xl text-xs">
-                          <Users className="w-3 h-3 text-indigo-500" />
-                          {ev.evaluatedTeachersCount} نفر
+                      {/* تعداد افراد (معلمان) */}
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-800 font-bold text-xs whitespace-nowrap">
+                          <Users className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                          <span>{ev.evaluatedTeachersCount} نفر</span>
                         </span>
                       </td>
 
                       {/* نرم ساعت استاندارد کارکرد */}
-                      <td className="py-4 px-4 text-center">
-                        <span className="font-bold text-slate-700 bg-slate-100/80 px-2.5 py-1 rounded-xl text-xs" title={`${ev.schoolsCount} مدرسه × ۲.۵ س + ${ev.evaluatedTeachersCount} معلم × ۱.۵ س`}>
-                          {ev.normHours} ساعت
-                        </span>
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                        <div
+                          className="inline-flex flex-col items-center"
+                          title={`${ev.schoolsCount} مدرسه × ۱۰۵ دقیقه (۱:۴۵ س) + ${ev.evaluatedTeachersCount} معلم × ۴۰ دقیقه = ${ev.normMinutes} دقیقه`}
+                        >
+                          <span className="font-black text-slate-800 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-xl text-xs whitespace-nowrap">
+                            {ev.normHours} ساعت
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-medium mt-1 whitespace-nowrap">
+                            {ev.normText}
+                          </span>
+                        </div>
                       </td>
 
                       {/* ساعت فعالیت ثبت‌شده */}
-                      <td className="py-4 px-4 text-center">
-                        <div>
-                          <span className="font-black text-slate-900 bg-slate-100 px-3 py-1 rounded-xl text-sm">
-                            {ev.totalRecordedHours} س
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                        <div className="inline-flex flex-col items-center">
+                          <span className="font-black text-slate-900 bg-slate-100 border border-slate-200/70 px-3 py-1 rounded-xl text-xs whitespace-nowrap">
+                            {ev.totalRecordedHours} ساعت
                           </span>
-                          <div className="text-[10px] text-slate-400 mt-1">
-                            ارزیاب: {ev.selfHours} | کمکیاران: {ev.assistantHours}
-                          </div>
+                          <span className="text-[10px] text-slate-400 mt-1 whitespace-nowrap">
+                            ارزیاب: {ev.selfHours}س | کمکیار: {ev.assistantHours}س
+                          </span>
                         </div>
                       </td>
 
                       {/* ساعت فعالیت تایید شده توسط مدیر */}
-                      <td className="py-4 px-4 text-center">
-                        <div>
-                          <span className="font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1 rounded-xl text-sm">
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                        <div className="inline-flex flex-col items-center">
+                          <span className="font-black text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl text-xs whitespace-nowrap">
                             {ev.totalApprovedHours} ساعت
                           </span>
-                          {diff !== 0 && (
-                            <div
-                              className={`text-[10px] font-bold mt-1 ${
-                                diff < 0 ? "text-rose-600" : "text-emerald-600"
+                          {diff !== 0 ? (
+                            <span
+                              className={`text-[10px] font-bold mt-1 px-1.5 py-0.5 rounded whitespace-nowrap ${
+                                diff < 0
+                                  ? "text-rose-700 bg-rose-50 border border-rose-200/60"
+                                  : "text-emerald-700 bg-emerald-50 border border-emerald-200/60"
                               }`}
+                              dir="ltr"
                             >
-                              {diff < 0 ? `${diff} س تعدیل منفی` : `+${diff} س تعدیل مثبت`}
-                            </div>
+                              {diff < 0 ? `${diff} h` : `+${diff} h`}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 mt-1 whitespace-nowrap">
+                              عیناً تایید
+                            </span>
                           )}
                         </div>
                       </td>
 
                       {/* وضعیت انطباق با نرم کارکرد */}
-                      <td className="py-4 px-5 text-center">
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
                         {ev.normStatus === "RUSHED" && (
-                          <div className="inline-flex flex-col items-center">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                              <AlertTriangle className="w-3 h-3" />
-                              شتاب‌زده (وقت ناکافی)
+                          <div className="inline-flex flex-col items-center gap-1">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">
+                              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                              <span>شتاب‌زده (وقت ناکافی)</span>
                             </span>
-                            <span className="text-[10px] text-rose-600 font-semibold mt-0.5">
-                              {ev.normRatio}٪ نرم استاندارد
+                            <span className="text-[10px] text-rose-600 font-bold whitespace-nowrap">
+                              {ev.normRatio}٪ از نرم استاندارد
                             </span>
                           </div>
                         )}
 
                         {ev.normStatus === "NORMAL" && (
-                          <div className="inline-flex flex-col items-center">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <CheckCircle2 className="w-3 h-3" />
-                              متعادل و استاندارد
+                          <div className="inline-flex flex-col items-center gap-1">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                              <span>متعادل و استاندارد</span>
                             </span>
-                            <span className="text-[10px] text-emerald-600 font-semibold mt-0.5">
-                              {ev.normRatio}٪ نرم استاندارد
+                            <span className="text-[10px] text-emerald-600 font-bold whitespace-nowrap">
+                              {ev.normRatio}٪ از نرم استاندارد
                             </span>
                           </div>
                         )}
 
                         {ev.normStatus === "EXCESSIVE" && (
-                          <div className="inline-flex flex-col items-center">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                              <Clock className="w-3 h-3" />
-                              فراتر از نرم (اتلاف وقت)
+                          <div className="inline-flex flex-col items-center gap-1">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 whitespace-nowrap">
+                              <Clock className="w-3.5 h-3.5 shrink-0" />
+                              <span>فراتر از نرم (اتلاف وقت)</span>
                             </span>
-                            <span className="text-[10px] text-purple-600 font-semibold mt-0.5">
-                              {ev.normRatio}٪ نرم استاندارد
+                            <span className="text-[10px] text-purple-600 font-bold whitespace-nowrap">
+                              {ev.normRatio}٪ از نرم استاندارد
                             </span>
                           </div>
                         )}
 
                         {ev.normStatus === "NO_EVAL" && (
-                          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                          <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full whitespace-nowrap">
                             بدون فعالیت
                           </span>
                         )}
                       </td>
 
                       {/* عملیات تایید سریع */}
-                      <td className="py-4 px-5 text-left whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <div className="flex items-center justify-center gap-2">
                           <BatchApproveButton
                             evaluatorId={ev.id}
                             pendingCount={ev.pendingCount}
@@ -703,7 +754,7 @@ export default async function AdminTimesheetsPage({
 
                           <Link
                             href={`/admin/timesheets?evaluatorId=${ev.id}`}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition text-xs font-semibold"
+                            className="px-2.5 py-1 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 transition text-xs font-bold whitespace-nowrap"
                             title="مشاهده لاگ‌های این ارزیاب"
                           >
                             مشاهده لاگ‌ها

@@ -298,6 +298,12 @@ export default async function TeacherDetailPage({
                   <strong>توصیف کیفی محور ۲: </strong> {latestEval.qualitativeAxis2}
                 </div>
               )}
+              {latestEval.notesAxis2 && (
+                <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl leading-relaxed">
+                  <strong className="text-slate-700 block mb-1">توضیحات و شواهد ارزیاب در محور ۲:</strong>
+                  {latestEval.notesAxis2}
+                </div>
+              )}
             </div>
 
             {/* محور ۳ */}
@@ -327,6 +333,12 @@ export default async function TeacherDetailPage({
               {latestEval.qualitativeAxis3 && (
                 <div className="text-xs text-amber-800 bg-amber-50/60 p-3 rounded-xl">
                   <strong>توصیف کیفی محور ۳: </strong> {latestEval.qualitativeAxis3}
+                </div>
+              )}
+              {latestEval.notesAxis3 && (
+                <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl leading-relaxed">
+                  <strong className="text-slate-700 block mb-1">توضیحات و شواهد ارزیاب در محور ۳:</strong>
+                  {latestEval.notesAxis3}
                 </div>
               )}
             </div>
@@ -360,6 +372,12 @@ export default async function TeacherDetailPage({
                   <strong>توصیف کیفی محور ۴: </strong> {latestEval.qualitativeAxis4}
                 </div>
               )}
+              {latestEval.notesAxis4 && (
+                <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl leading-relaxed">
+                  <strong className="text-slate-700 block mb-1">توضیحات و شواهد ارزیاب در محور ۴:</strong>
+                  {latestEval.notesAxis4}
+                </div>
+              )}
             </div>
 
             {/* محور ۵ */}
@@ -389,6 +407,12 @@ export default async function TeacherDetailPage({
               {latestEval.qualitativeAxis5 && (
                 <div className="text-xs text-rose-800 bg-rose-50/60 p-3 rounded-xl">
                   <strong>توصیف کیفی محور ۵: </strong> {latestEval.qualitativeAxis5}
+                </div>
+              )}
+              {latestEval.notesAxis5 && (
+                <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl leading-relaxed">
+                  <strong className="text-slate-700 block mb-1">توضیحات و شواهد ارزیاب در محور ۵:</strong>
+                  {latestEval.notesAxis5}
                 </div>
               )}
             </div>

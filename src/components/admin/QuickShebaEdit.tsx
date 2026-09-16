@@ -58,7 +58,7 @@ export function QuickShebaEdit({
         <button
           type="submit"
           disabled={loading}
-          className="p-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer"
+          className="p-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer shrink-0"
           title="ذخیره"
         >
           {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
@@ -69,7 +69,7 @@ export function QuickShebaEdit({
             setIsEditing(false);
             setSheba(currentSheba || "");
           }}
-          className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer"
+          className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer shrink-0"
           title="انصراف"
         >
           <X className="w-3.5 h-3.5" />
@@ -79,28 +79,35 @@ export function QuickShebaEdit({
   }
 
   return (
-    <div className="flex items-center gap-1.5 group/sheba">
+    <div className="flex items-center gap-1.5 whitespace-nowrap">
       {sheba ? (
-        <span
-          className="font-mono text-xs font-semibold text-slate-700 bg-slate-100/90 px-2 py-0.5 rounded-md select-all"
-          dir="ltr"
-        >
-          {sheba}
-        </span>
+        <div className="flex items-center gap-1.5 group/sheba">
+          <span
+            className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md select-all border border-slate-200/70"
+            dir="ltr"
+          >
+            {sheba}
+          </span>
+          <button
+            type="button"
+            onClick={() => setIsEditing(true)}
+            className="p-1 text-slate-400 hover:text-indigo-600 transition cursor-pointer"
+            title="ویرایش شماره شبا"
+          >
+            <Edit2 className="w-3 h-3" />
+          </button>
+        </div>
       ) : (
-        <span className="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md font-medium">
-          ثبت‌نشده
-        </span>
+        <button
+          type="button"
+          onClick={() => setIsEditing(true)}
+          className="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-2.5 py-1 rounded-lg font-medium transition cursor-pointer"
+          title="ثبت شماره شبا"
+        >
+          <CreditCard className="w-3 h-3 text-amber-600" />
+          <span>ثبت شماره شبا</span>
+        </button>
       )}
-
-      <button
-        type="button"
-        onClick={() => setIsEditing(true)}
-        className="opacity-0 group-hover/sheba:opacity-100 p-1 text-slate-400 hover:text-indigo-600 transition cursor-pointer"
-        title="ویرایش شماره شبا"
-      >
-        <Edit2 className="w-3 h-3" />
-      </button>
 
       {saved && (
         <span className="text-[10px] font-bold text-emerald-600 animate-in fade-in">

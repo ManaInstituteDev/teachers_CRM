@@ -50,6 +50,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
   const scoreAxis2_3 = Math.min(20, Math.max(0, parseInt((formData.get("scoreAxis2_3") as string) || "0", 10)));
   const rawAxis2 = scoreAxis2_1 + scoreAxis2_2 + scoreAxis2_3;
   const qualitativeAxis2 = calculateAxisQualitative(2, rawAxis2);
+  const notesAxis2 = formData.get("notesAxis2") as string;
 
   // ۵. امتیازات محور ۳ (۱۵٪ - سقف ۱۰۰ نمره خام)
   const scoreAxis3_1 = Math.min(35, Math.max(0, parseInt((formData.get("scoreAxis3_1") as string) || "0", 10)));
@@ -57,6 +58,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
   const scoreAxis3_3 = Math.min(30, Math.max(0, parseInt((formData.get("scoreAxis3_3") as string) || "0", 10)));
   const rawAxis3 = scoreAxis3_1 + scoreAxis3_2 + scoreAxis3_3;
   const qualitativeAxis3 = calculateAxisQualitative(3, rawAxis3);
+  const notesAxis3 = formData.get("notesAxis3") as string;
 
   // ۶. امتیازات محور ۴ (۲۵٪ - سقف ۱۰۰ نمره خام)
   const scoreAxis4_1 = Math.min(35, Math.max(0, parseInt((formData.get("scoreAxis4_1") as string) || "0", 10)));
@@ -64,6 +66,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
   const scoreAxis4_3 = Math.min(30, Math.max(0, parseInt((formData.get("scoreAxis4_3") as string) || "0", 10)));
   const rawAxis4 = scoreAxis4_1 + scoreAxis4_2 + scoreAxis4_3;
   const qualitativeAxis4 = calculateAxisQualitative(4, rawAxis4);
+  const notesAxis4 = formData.get("notesAxis4") as string;
 
   // ۷. امتیازات محور ۵ (۲۰٪ - سقف ۷۵ نمره خام)
   const scoreAxis5_1 = Math.min(30, Math.max(0, parseInt((formData.get("scoreAxis5_1") as string) || "0", 10)));
@@ -71,6 +74,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
   const scoreAxis5_3 = Math.min(25, Math.max(0, parseInt((formData.get("scoreAxis5_3") as string) || "0", 10)));
   const rawAxis5 = scoreAxis5_1 + scoreAxis5_2 + scoreAxis5_3;
   const qualitativeAxis5 = calculateAxisQualitative(5, rawAxis5);
+  const notesAxis5 = formData.get("notesAxis5") as string;
 
   // ۸. محاسبه نمره موزون کل (از ۱۰۰ نمره)
   const weighted1 = (rawAxis1 / 50) * 15;
@@ -142,6 +146,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
         scoreAxis2_3,
         rawAxis2,
         qualitativeAxis2,
+        notesAxis2: notesAxis2 ? notesAxis2.trim() : null,
 
         // محور ۳
         scoreAxis3_1,
@@ -149,6 +154,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
         scoreAxis3_3,
         rawAxis3,
         qualitativeAxis3,
+        notesAxis3: notesAxis3 ? notesAxis3.trim() : null,
 
         // محور ۴
         scoreAxis4_1,
@@ -156,6 +162,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
         scoreAxis4_3,
         rawAxis4,
         qualitativeAxis4,
+        notesAxis4: notesAxis4 ? notesAxis4.trim() : null,
 
         // محور ۵
         scoreAxis5_1,
@@ -163,6 +170,7 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
         scoreAxis5_3,
         rawAxis5,
         qualitativeAxis5,
+        notesAxis5: notesAxis5 ? notesAxis5.trim() : null,
 
         totalWeightedScore,
         finalRecommendation,

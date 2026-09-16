@@ -239,7 +239,7 @@ model TeacherEvaluation {
   scoreAxis1_2        Int                 @default(0) // وجود رابطه اعتمادآمیز و رجوع واقعی (۰ تا ۲۰)
   rawAxis1            Int                 @default(0) // جمع خام (۰ تا ۵۰)
   qualitativeAxis1    String?             // برچسب کیفی ۴‌گانه محور ۱
-  notesAxis1          String?             @db.Text    // نظر ارزیاب
+  notesAxis1          String?             @db.Text    // نظر ارزیاب در محور ۱
 
   // --- محور ۲: توان شناسایی استعداد (وزن ۲۵٪ - سقف ۸۰ نمره خام) ---
   scoreAxis2_1        Int                 @default(0) // تشخیص ظرفیت دانش‌آموز فراتر از معدل و رتبه (۰ تا ۳۰)
@@ -247,6 +247,7 @@ model TeacherEvaluation {
   scoreAxis2_3        Int                 @default(0) // توان تشخیص ظرفیت‌های علوم انسانی (۰ تا ۲۰)
   rawAxis2            Int                 @default(0) // جمع خام (۰ تا ۸۰)
   qualitativeAxis2    String?             // برچسب کیفی ۴‌گانه محور ۲
+  notesAxis2          String?             @db.Text    // نظر ارزیاب در محور ۲
 
   // --- محور ۳: نگرش و ظرفیت علوم انسانی (وزن ۱۵٪ - سقف ۱۰۰ نمره خام) ---
   scoreAxis3_1        Int                 @default(0) // باور به اهمیت علوم انسانی و پرهیز از نگاه کلیشه‌ای (۰ تا ۳۵)
@@ -254,6 +255,7 @@ model TeacherEvaluation {
   scoreAxis3_3        Int                 @default(0) // توان پیوند علوم انسانی با مسائل واقعی (۰ تا ۳۰)
   rawAxis3            Int                 @default(0) // جمع خام (۰ تا ۱۰۰)
   qualitativeAxis3    String?             // برچسب کیفی ۴‌گانه محور ۳
+  notesAxis3          String?             @db.Text    // نظر ارزیاب در محور ۳
 
   // --- محور ۴: سرمایه ارتباطی و ظرفیت شبکه‌سازی (وزن ۲۵٪ - سقف ۱۰۰ نمره خام) ---
   scoreAxis4_1        Int                 @default(0) // دسترسی مؤثر به دانش‌آموزان و مدارس (۰ تا ۳۵)
@@ -261,6 +263,7 @@ model TeacherEvaluation {
   scoreAxis4_3        Int                 @default(0) // توان معرفی و همراه‌کردن افراد با برنامه مشترک (۰ تا ۳۰)
   rawAxis4            Int                 @default(0) // جمع خام (۰ تا ۱۰۰)
   qualitativeAxis4    String?             // برچسب کیفی ۴‌گانه محور ۴
+  notesAxis4          String?             @db.Text    // نظر ارزیاب در محور ۴
 
   // --- محور ۵: تعهد و قابلیت همکاری اجرایی (وزن ۲۰٪ - سقف ۷۵ نمره خام) ---
   scoreAxis5_1        Int                 @default(0) // سابقه اجرای فعالیت تربیتی/آموزشی از آغاز تا پایان (۰ تا ۳۰)
@@ -268,6 +271,7 @@ model TeacherEvaluation {
   scoreAxis5_3        Int                 @default(0) // توان همکاری تیمی، چارچوب‌پذیری و بازخورد (۰ تا ۲۵)
   rawAxis5            Int                 @default(0) // جمع خام (۰ تا ۷۵)
   qualitativeAxis5    String?             // برچسب کیفی ۴‌گانه محور ۵
+  notesAxis5          String?             @db.Text    // نظر ارزیاب در محور ۵
 
   // نمره کل موزون و جمع‌بندی نهایی
   totalWeightedScore  Float               @default(0)

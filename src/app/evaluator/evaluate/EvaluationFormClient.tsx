@@ -618,6 +618,18 @@ export default function EvaluationFormClient({
                     <span>۲۰ (تشخیص تخصصی مؤلفه‌های علوم انسانی)</span>
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    نظر ارزیاب در خصوص محور ۲ (شواهد، مصادیق و توضیحات):
+                  </label>
+                  <textarea
+                    name="notesAxis2"
+                    rows={2}
+                    placeholder="شواهد عینی از توان تشخیص استعدادهای دانش‌آموزان و ظرفیت‌های علوم انسانی..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs sm:text-sm focus:bg-white focus:border-emerald-500 outline-none transition"
+                  ></textarea>
+                </div>
               </div>
             </div>
 
@@ -726,6 +738,18 @@ export default function EvaluationFormClient({
                     <span>۱۵ (پیوند موردی با مسائل)</span>
                     <span>۳۰ (توان بالا در حل مسئله و انگیزش دانش‌آموزان)</span>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    نظر ارزیاب در خصوص محور ۳ (شواهد، مصادیق و توضیحات):
+                  </label>
+                  <textarea
+                    name="notesAxis3"
+                    rows={2}
+                    placeholder="باور به شأن علوم انسانی، شناخت حوزه‌ها و توان پیوند با مسائل واقعی..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs sm:text-sm focus:bg-white focus:border-amber-500 outline-none transition"
+                  ></textarea>
                 </div>
               </div>
             </div>
@@ -836,6 +860,18 @@ export default function EvaluationFormClient({
                     <span>۳۰ (نفوذ کلام و توان جذب و شبکه‌سازی بالا)</span>
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    نظر ارزیاب در خصوص محور ۴ (شواهد، مصادیق و توضیحات):
+                  </label>
+                  <textarea
+                    name="notesAxis4"
+                    rows={2}
+                    placeholder="دسترسی به مدارس، ارتباط حرفه‌ای با همکاران و توان معرفی و همراه‌سازی افراد..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs sm:text-sm focus:bg-white focus:border-sky-500 outline-none transition"
+                  ></textarea>
+                </div>
               </div>
             </div>
 
@@ -944,6 +980,18 @@ export default function EvaluationFormClient({
                     <span>۱۲ (همکاری متوسط)</span>
                     <span>۲۵ (پذیرش کامل چارچوب و کار تیمی منسجم)</span>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    نظر ارزیاب در خصوص محور ۵ (شواهد، مصادیق و توضیحات):
+                  </label>
+                  <textarea
+                    name="notesAxis5"
+                    rows={2}
+                    placeholder="سابقه اجرای فعالیت‌ها، داشتن زمان مشخص برای همکاری و روحیه کار تیمی..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs sm:text-sm focus:bg-white focus:border-rose-500 outline-none transition"
+                  ></textarea>
                 </div>
               </div>
             </div>
