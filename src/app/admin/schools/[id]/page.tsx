@@ -31,6 +31,9 @@ export default async function SchoolDetailPage({
       include: {
         createdBy: true,
         assignedEvaluator: true,
+        referrers: {
+          orderBy: { createdAt: "asc" },
+        },
         teachers: {
           include: {
             evaluations: {
@@ -214,6 +217,7 @@ export default async function SchoolDetailPage({
             schoolId={school.id}
             initialReferrerName={school.referrerName}
             initialReferrerPhone={school.referrerPhone}
+            referrers={school.referrers}
             isAdmin={true}
           />
         </div>
