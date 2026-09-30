@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "clean:db": "node scripts/clean_db.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
