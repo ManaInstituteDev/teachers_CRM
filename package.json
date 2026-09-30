@@ -7,7 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "clean:db": "node scripts/clean_db.cjs"
+    "clean:db": "node scripts/clean_db.cjs",
+    "seed:schools": "node scripts/seed_schools_and_referrers.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
