@@ -1,0 +1,43 @@
+name: Deploy Teachers CRM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          port: ${{ secrets.VPS_PORT }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            cd /home/deploy/apps/teachers_CRM
+
+            echo "Pulling latest changes..."
+            git pull origin main
+
+            echo "Installing dependencies..."
+            pnpm install --frozen-lockfile
+
+            echo "Generating Prisma Client..."
+            pnpm exec prisma generate
+
+            echo "Running migrations..."
+            pnpm exec prisma migrate deploy
+
+            echo "Building application..."
+            pnpm build
+
+            echo "Restarting application..."
+            pm2 restart teachers-crm
+
+            echo "Deployment completed successfully!"
