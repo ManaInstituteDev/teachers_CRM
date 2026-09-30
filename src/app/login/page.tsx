@@ -2,23 +2,13 @@
 
 import { useActionState } from "react";
 import { loginAction } from "@/app/actions/auth";
-import { GraduationCap, ShieldCheck, UserCheck, KeyRound, User, ArrowLeft, School } from "lucide-react";
+import { GraduationCap, KeyRound, User, ArrowLeft, School } from "lucide-react";
 import { useState } from "react";
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
-  const handleQuickLogin = (userType: "ADMIN" | "EVALUATOR") => {
-    if (userType === "ADMIN") {
-      setUsername("admin");
-      setPassword("admin123");
-    } else {
-      setUsername("evaluator1");
-      setPassword("123456");
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-4 sm:p-6 text-slate-100">
@@ -38,31 +28,6 @@ export default function LoginPage() {
 
         {/* کارت ورود */}
         <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-6 sm:p-8 shadow-2xl">
-          {/* دکمه‌های ورود سریع تستی */}
-          <div className="mb-6 pb-6 border-b border-slate-700/60">
-            <p className="text-xs font-medium text-slate-400 mb-3 text-center">
-              انتخاب سریع نقش برای تست سامانه:
-            </p>
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("ADMIN")}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold transition"
-              >
-                <ShieldCheck className="w-4 h-4 text-indigo-400" />
-                ورود مدیر (Admin)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("EVALUATOR")}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition"
-              >
-                <UserCheck className="w-4 h-4 text-emerald-400" />
-                ورود ارزیاب (Evaluator)
-              </button>
-            </div>
-          </div>
-
           <form action={formAction} className="space-y-4">
             {state?.error && (
               <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium leading-relaxed">
@@ -81,7 +46,7 @@ export default function LoginPage() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="مثال: admin یا evaluator1"
+                  placeholder="نام کاربری یا شماره همراه خود را وارد کنید"
                   className="w-full bg-slate-900/60 border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-3.5 py-2.5 pl-10 text-sm text-white placeholder-slate-500 transition outline-none"
                 />
                 <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
