@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صفحه ورود با پس‌زمینه سیال و رنگی متحرک (Fluid Simulation)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #ecf2f8;
+      user-select: none;
+    }
+
+    /* بوم انیمیشن سیال در تمام صفحه */
+    #fluidbg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: auto;
+    }
+
+    /* کانتینر اصلی فرم لاگین */
+    .login-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      pointer-events: none; /* تا موس به بکگراند سیال برسد */
+    }
+
+    /* کارت ورود با استایل مات و شیشه‌ای (Glassmorphism) */
+    .login-card {
+      pointer-events: auto; /* فعال بودن کلیک و فوکوس روی فرم */
+      width: 100%;
+      max-width: 410px;
+      background: rgba(63, 164, 174, 0.82); /* رنگ فیروزه‌ای زیبا مشابه لاگین دانشگاه اصفهان */
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      border-radius: 28px;
+      padding: 34px 28px;
+      box-shadow: 0 25px 50px -12px rgba(22, 78, 99, 0.35),
+                  0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      animation: floatIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .login-card:hover {
+      box-shadow: 0 30px 60px -12px rgba(22, 78, 99, 0.45);
+    }
+
+    @keyframes floatIn {
+      from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* هدر و لوگو */
+    .brand-header {
+      margin-bottom: 22px;
+    }
+
+    .brand-icon-wrapper {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 12px;
+      background: rgba(255, 255, 255, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .brand-icon-wrapper svg {
+      width: 36px;
+      height: 36px;
+      fill: #ffffff;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fef08a; /* زرد ملایم هایلایت مشابه تصویر */
+      margin-top: 4px;
+    }
+
+    /* فرم و ورودی‌ها */
+    .form-group {
+      margin-bottom: 16px;
+      position: relative;
+      text-align: right;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper svg.field-icon {
+      position: absolute;
+      right: 14px;
+      width: 19px;
+      height: 19px;
+      color: #3b82f6;
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 48px;
+      background: #eef5fb;
+      border: 2px solid transparent;
+      border-radius: 24px;
+      padding: 0 46px 0 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e293b;
+      outline: none;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) inset;
+    }
+
+    .form-input:focus {
+      background: #ffffff;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+    }
+
+    .form-input::placeholder {
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    /* دکمه ورود */
+    .btn-submit {
+      width: 100%;
+      height: 48px;
+      background: #1e3a5f;
+      color: #ffffff;
+      border: none;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 6px 16px rgba(30, 58, 95, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-submit:hover {
+      background: #162c46;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(30, 58, 95, 0.45);
+    }
+
+    .btn-submit:active {
+      transform: translateY(1px);
+    }
+
+    /* دکمه بازیابی کلمه عبور مشابه تصویر */
+    .btn-forgot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 20px;
+      padding: 8px 20px;
+      background: #eab308;
+      color: #1e293b;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 20px;
+      text-decoration: none;
+      border: 1.5px solid #1e293b;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-forgot:hover {
+      background: #facc15;
+      transform: translateY(-1px);
+    }
+
+    /* فوتر و پیام راهنما */
+    .hint-bubble {
+      margin-top: 18px;
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    /* نشانگر حالت تم تیره/روشن */
+    .theme-toggle {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 30px;
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background: #ffffff;
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- بوم شبیه‌سازی سیال دودی (Fluid Simulation Canvas) -->
+  <canvas id="fluidbg"></canvas>
+
+  <!-- دکمه تغییر تم زمینه -->
+  <button id="themeBtn" class="theme-toggle" type="button">
+    <span>🌓 تغییر تم پس‌زمینه</span>
+  </button>
+
+  <!-- فرم ورود کاربر -->
+  <div class="login-container">
+    <div class="login-card">
+      <div class="brand-header">
+        <div class="brand-icon-wrapper">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 13.5L4.2 12.2 3 12.8 12 18l9-5.2-1.2-.6-7.8 4.3z"/>
+          </svg>
+        </div>
+        <h2 class="brand-title">سامانه مدیریت و ورود کاربران</h2>
+        <p class="brand-subtitle">با نام کاربری و رمز عبور خود وارد شوید</p>
+      </div>
+
+      <!-- جعبه هشدار خطا و قفل تلاش‌ها -->
+      <div id="lockoutBox" style="display:none; margin-bottom: 16px; padding: 14px; border-radius: 18px; background: rgba(254, 243, 199, 0.95); border: 1.5px solid #f59e0b; text-align: right; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);">
+        <div style="display:flex; align-items:center; gap:6px; font-weight:800; color:#b45309; font-size:13.5px; margin-bottom:4px;">
+          <span>⚠️</span>
+          <span>دسترسی موقتاً مسدود شد!</span>
+        </div>
+        <p style="font-size:12px; color:#78350f; margin-bottom:8px; line-height:1.6;">
+          به دلیل ۵ بار تلاش ناموفق، ورود به مدت ۱ دقیقه مسدود شد.
+        </p>
+        <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(245, 158, 11, 0.15); padding:8px 12px; border-radius:12px;">
+          <span style="font-size:12px; font-weight:700; color:#92400e;">زمان باقی‌مانده:</span>
+          <span id="countdownTimer" style="font-family:monospace; font-size:16px; font-weight:900; color:#b45309; letter-spacing:1px;">01:00</span>
+        </div>
+      </div>
+
+      <div id="errorAlert" style="display:none; margin-bottom: 14px; padding: 10px 14px; border-radius: 14px; background: rgba(254, 226, 226, 0.95); border: 1px solid #f87171; color: #991b1b; font-size: 12.5px; font-weight: 600; text-align: right;">
+        <span id="errorMsg">نام کاربری یا رمز عبور اشتباه است!</span>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <div class="input-wrapper">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+            <input type="text" id="userInput" class="form-input" placeholder="نام کاربری (کد پرسنلی / دانشجویی)" required value="40117243">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-wrapper">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+            <input type="password" id="passInput" class="form-input" placeholder="رمز عبور" required value="">
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-submit">
+          <span>ورود به سامانه</span>
+          <span>←</span>
+        </button>
+      </form>
+
+      <a href="#" class="btn-forgot">
+        <span>فراموشی رمز عبور؟</span>
+        <span>→</span>
+      </a>
+
+      <div class="hint-bubble">
+        <span>✨</span>
+        <span>موس را روی صفحه حرکت دهید تا امواج رنگی را مشاهده کنید</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- اسکریپت شبیه‌سازی سیال WebGL Fluid -->
+  <script src="https://cdn.jsdelivr.net/npm/webgl-fluid@0.4/dist/webgl-fluid.umd.js"></script>
+  <script>
+    (function() {
+      // سیستم محدودیت تلاش برای لاگین (۵ بار = ۱ دقیقه قفل)
+      let failedAttempts = 0;
+      let lockoutInterval = null;
+      let remainingSecs = 0;
+
+      const form = document.getElementById('loginForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const userInput = document.getElementById('userInput');
+      const passInput = document.getElementById('passInput');
+      const lockoutBox = document.getElementById('lockoutBox');
+      const countdownTimer = document.getElementById('countdownTimer');
+      const errorAlert = document.getElementById('errorAlert');
+      const errorMsg = document.getElementById('errorMsg');
+
+      function formatTime(s) {
+        const mins = Math.floor(s / 60).toString().padStart(2, '0');
+        const secs = (s % 60).toString().padStart(2, '0');
+        return `${mins}:${secs}`;
+      }
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (remainingSecs > 0) return;
+
+        // شبیه‌سازی بررسی کلمه عبور (مثلاً کلمه عبور صحیح: "123456")
+        const enteredPass = passInput.value.trim();
+        if (enteredPass === '123456') {
+          errorAlert.style.display = 'none';
+          alert('ورود با موفقیت انجام شد! خوش آمدید.');
+          failedAttempts = 0;
+          return;
+        }
+
+        // تلاش اشتباه
+        failedAttempts++;
+        if (failedAttempts < 5) {
+          const remaining = 5 - failedAttempts;
+          errorAlert.style.display = 'block';
+          errorMsg.innerText = `کلمه عبور نادرست است! (${remaining} تلاش دیگر تا قفل ۱ دقیقه‌ای)`;
+          passInput.focus();
+        } else {
+          // قفل شدن به مدت ۱ دقیقه (۶۰ ثانیه)
+          errorAlert.style.display = 'none';
+          lockoutBox.style.display = 'block';
+          remainingSecs = 60;
+          countdownTimer.innerText = formatTime(remainingSecs);
+
+          userInput.disabled = true;
+          passInput.disabled = true;
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = '0.6';
+          submitBtn.style.cursor = 'not-allowed';
+          submitBtn.innerHTML = '<span>ورود قفل است (۶۰s)</span>';
+
+          if (lockoutInterval) clearInterval(lockoutInterval);
+          lockoutInterval = setInterval(function() {
+            remainingSecs--;
+            countdownTimer.innerText = formatTime(remainingSecs);
+            submitBtn.innerHTML = `<span>ورود قفل است (${remainingSecs}s)</span>`;
+
+            if (remainingSecs <= 0) {
+              clearInterval(lockoutInterval);
+              lockoutBox.style.display = 'none';
+              userInput.disabled = false;
+              passInput.disabled = false;
+              submitBtn.disabled = false;
+              submitBtn.style.opacity = '1';
+              submitBtn.style.cursor = 'pointer';
+              submitBtn.innerHTML = '<span>ورود به سامانه</span> <span>←</span>';
+              failedAttempts = 0;
+              errorAlert.style.display = 'block';
+              errorMsg.style.color = '#15803d';
+              errorMsg.innerText = 'زمان قفل به پایان رسید. اکنون می‌توانید مجدداً تلاش کنید.';
+              setTimeout(() => { errorAlert.style.display = 'none'; errorMsg.style.color = '#991b1b'; }, 4000);
+            }
+          }, 1000);
+        }
+      });
+      const canvas = document.getElementById('fluidbg');
+      let isDark = false;
+
+      // تابع راه‌اندازی با تنظیمات سفارشی
+      function launchFluid(dark = false) {
+        if (typeof WebGLFluid === 'undefined') {
+          console.warn('پکیج WebGLFluid لود نشد، در حال تلاش مجدد...');
+          return;
+        }
+
+        WebGLFluid(canvas, {
+          IMMEDIATE: true,
+          TRIGGER: 'hover',
+          AUTO: false,
+          SIM_RESOLUTION: 128,
+          DYE_RESOLUTION: 1024,
+          CAPTURE_RESOLUTION: 512,
+          DENSITY_DISSIPATION: 0.98,
+          VELOCITY_DISSIPATION: 0.2,
+          PRESSURE: 0.8,
+          PRESSURE_ITERATIONS: 20,
+          CURL: 30,
+          SPLAT_RADIUS: 0.35,
+          SPLAT_FORCE: 6000,
+          SPLAT_COUNT: 5,
+          SHADING: true,
+          COLORFUL: true,
+          COLOR_UPDATE_SPEED: 10,
+          PAUSED: false,
+          // رنگ زمینه: روشن یخی مشابه تصویر اصلی دانشگاه اصفهان
+          BACK_COLOR: dark ? { r: 15, g: 23, b: 42 } : { r: 236, g: 242, b: 248 },
+          TRANSPARENT: false,
+          BLOOM: true,
+          BLOOM_ITERATIONS: 8,
+          BLOOM_RESOLUTION: 256,
+          BLOOM_INTENSITY: dark ? 0.85 : 0.45,
+          BLOOM_THRESHOLD: dark ? 0.6 : 0.75,
+          BLOOM_SOFT_KNEE: 0.7,
+          SUNRAYS: true,
+          SUNRAYS_RESOLUTION: 196,
+          SUNRAYS_WEIGHT: 1.0,
+        });
+      }
+
+      // گوش دادن به حرکت موس در کل صفحه تا هنگام رفتن روی کارت فرم لاگین نیز دودها تولید شوند
+      window.addEventListener('mousemove', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const evt = new MouseEvent('mousemove', {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          bubbles: false,
+        });
+        Object.defineProperty(evt, 'offsetX', { get: () => e.clientX - rect.left });
+        Object.defineProperty(evt, 'offsetY', { get: () => e.clientY - rect.top });
+        canvas.dispatchEvent(evt);
+      }, { passive: true });
+
+      // بارگذاری اولیه
+      window.addEventListener('DOMContentLoaded', () => launchFluid(false));
+      setTimeout(() => launchFluid(false), 200);
+
+      // دکمه تغییر تم
+      const themeBtn = document.getElementById('themeBtn');
+      themeBtn.addEventListener('click', () => {
+        isDark = !isDark;
+        document.body.style.backgroundColor = isDark ? '#0f172a' : '#ecf2f8';
+        themeBtn.innerText = isDark ? '☀️ حالت روشن پاستلی' : '🌙 حالت تیره نئونی';
+        launchFluid(isDark);
+      });
+    })();
+  </script>
+</body>
+</html>

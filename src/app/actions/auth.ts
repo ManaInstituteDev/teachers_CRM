@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { setSession, clearSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { checkLoginAttempts, recordFailedLogin, resetLoginAttempts } from "@/lib/loginRateLimit";
 
 export async function loginAction(prevState: any, formData: FormData) {
   const username = formData.get("username") as string;
@@ -12,14 +13,26 @@ export async function loginAction(prevState: any, formData: FormData) {
     return { error: "لطفاً نام کاربری و کلمه عبور را وارد کنید." };
   }
 
+  const cleanUsername = username.trim();
+
+  // ۱. بررسی وضعیت قفل حساب به دلیل تلاش‌های ناموفق قبلی
+  const attemptStatus = checkLoginAttempts(cleanUsername);
+  if (attemptStatus.isLocked) {
+    return {
+      error: `به دلیل ۵ بار تلاش ناموفق، امکان ورود به مدت ۱ دقیقه مسدود شده است. لطفاً ${attemptStatus.remainingSeconds} ثانیه دیگر مجدداً تلاش کنید.`,
+      isLocked: true,
+      remainingSeconds: attemptStatus.remainingSeconds,
+    };
+  }
+
   // ارزیاب یا ادمین می‌تواند با نام کاربری یا شماره موبایل وارد شود
   let user;
   try {
     user = await prisma.user.findFirst({
       where: {
         OR: [
-          { username: username.trim() },
-          { phone: username.trim() },
+          { username: cleanUsername },
+          { phone: cleanUsername },
         ],
       },
     });
@@ -32,12 +45,29 @@ export async function loginAction(prevState: any, formData: FormData) {
   }
 
   if (!user || user.password !== password.trim()) {
-    return { error: "نام کاربری یا کلمه عبور نادرست است." };
+    // ۲. ثبت تلاش ناموفق
+    const failedStatus = recordFailedLogin(cleanUsername);
+    if (failedStatus.isLocked) {
+      return {
+        error: "رمز عبور یا نام کاربری ۵ بار اشتباه وارد شد. امکان ورود به مدت ۱ دقیقه مسدود گردید.",
+        isLocked: true,
+        remainingSeconds: failedStatus.remainingSeconds,
+      };
+    }
+
+    return {
+      error: `نام کاربری یا کلمه عبور نادرست است. (${failedStatus.remainingAttempts} تلاش مجاز باقی‌مانده)`,
+      isLocked: false,
+      remainingAttempts: failedStatus.remainingAttempts,
+    };
   }
 
   if (!user.isActive) {
     return { error: "حساب کاربری شما غیرفعال شده است. با مدیر سیستم تماس بگیرید." };
   }
+
+  // ۳. در صورت ورود موفق، شمارنده تلاش‌های این کاربر ریست می‌شود
+  resetLoginAttempts(cleanUsername);
 
   await setSession({
     id: user.id,
@@ -58,3 +88,4 @@ export async function logoutAction() {
   await clearSession();
   redirect("/login");
 }
+
