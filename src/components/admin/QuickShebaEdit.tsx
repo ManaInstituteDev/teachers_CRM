@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { updateEvaluatorShebaAction, updateAssistantShebaAction } from "@/app/actions/timesheetApproval";
-import { CreditCard, Check, Edit2, Loader2, X } from "lucide-react";
+import { CreditCard, Check, Edit2, Loader2, X, Copy } from "lucide-react";
 
 export function QuickShebaEdit({
   userId,
@@ -19,7 +19,32 @@ export function QuickShebaEdit({
   const [sheba, setSheba] = useState(currentSheba || "");
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!sheba) return;
+
+    const clean = sheba.replace(/\s+/g, "").toUpperCase();
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(clean);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = clean;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (err) {
+      console.error("Failed to copy sheba:", err);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +76,7 @@ export function QuickShebaEdit({
 
   if (isEditing) {
     return (
-      <form onSubmit={handleSave} className="flex items-center gap-1.5 min-w-[220px]">
+      <form onSubmit={handleSave} className="flex items-center gap-1.5 min-w-55">
         <input
           type="text"
           value={sheba}
@@ -87,13 +112,28 @@ export function QuickShebaEdit({
   return (
     <div className="flex items-center gap-1.5 whitespace-nowrap">
       {sheba ? (
-        <div className="flex items-center gap-1.5 group/sheba">
+        <div className="flex items-center gap-1 group/sheba bg-slate-50 border border-slate-200/80 rounded-lg px-1.5 py-0.5">
           <span
-            className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md select-all border border-slate-200/70"
+            className="font-mono text-xs font-semibold text-slate-700 select-all"
             dir="ltr"
           >
             {sheba}
           </span>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="p-1 text-slate-400 hover:text-indigo-600 transition cursor-pointer"
+            title="کپی شماره شبا"
+          >
+            {copied ? (
+              <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5">
+                <Check className="w-3 h-3 text-emerald-600" />
+                کپی شد
+              </span>
+            ) : (
+              <Copy className="w-3 h-3" />
+            )}
+          </button>
           <button
             type="button"
             onClick={() => setIsEditing(true)}

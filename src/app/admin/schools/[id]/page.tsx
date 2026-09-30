@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { AssignEvaluatorForm } from "@/components/admin/AssignEvaluatorForm";
 import { SchoolReferrerManager } from "@/components/admin/SchoolReferrerManager";
+import { CopyableSheba } from "@/components/admin/CopyableSheba";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +47,7 @@ export default async function SchoolDetailPage({
     }),
     prisma.user.findMany({
       where: { role: "EVALUATOR", isActive: true },
-      select: { id: true, fullName: true, username: true },
+      select: { id: true, fullName: true, username: true, shebaNumber: true },
       orderBy: { fullName: "asc" },
     }),
   ]);
@@ -192,17 +193,27 @@ export default async function SchoolDetailPage({
         </div>
 
         {/* انتساب ارزیاب متصل (کارتابل) */}
-        <div className="mt-5 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
+        <div className="mt-5 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1.5">
             <span className="text-emerald-950 font-bold text-xs flex items-center gap-1.5">
               <UserCheck className="w-4 h-4 text-emerald-600" />
               <span>ارزیاب مسئول متصل (این مدرسه در کارتابل این ارزیاب قرار دارد):</span>
             </span>
-            <p className="text-[11px] text-emerald-700 mt-0.5">
-              {school.assignedEvaluator
-                ? `تخصیص‌یافته به ${school.assignedEvaluator.fullName} (${school.assignedEvaluator.username})`
-                : "در حال حاضر هیچ ارزیابی به این مدرسه متصل نیست."}
-            </p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <p className="text-xs text-emerald-800 font-medium">
+                {school.assignedEvaluator
+                  ? `تخصیص‌یافته به ${school.assignedEvaluator.fullName} (${school.assignedEvaluator.username})`
+                  : "در حال حاضر هیچ ارزیابی به این مدرسه متصل نیست."}
+              </p>
+              {school.assignedEvaluator && (
+                <CopyableSheba
+                  shebaNumber={school.assignedEvaluator.shebaNumber}
+                  evaluatorId={school.assignedEvaluator.id}
+                  evaluatorName={school.assignedEvaluator.fullName}
+                  variant="badge"
+                />
+              )}
+            </div>
           </div>
           <AssignEvaluatorForm
             schoolId={school.id}

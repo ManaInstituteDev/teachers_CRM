@@ -135,6 +135,7 @@ export async function updateEvaluatorShebaAction(userId: string, shebaNumber: st
 
     revalidatePath("/admin/timesheets");
     revalidatePath("/admin/evaluators");
+    revalidatePath("/admin/schools");
     revalidatePath("/evaluator");
     revalidatePath("/evaluator/timesheets");
     return { success: true };

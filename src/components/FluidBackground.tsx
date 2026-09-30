@@ -56,7 +56,6 @@ export default function FluidBackground({
           COLORFUL: true,
           COLOR_UPDATE_SPEED: 10,
           PAUSED: false,
-          // رنگ پس‌زمینه: در حالت روشن، رنگ یخی ملایم دقیقاً مانند تصویر دانشگاه اصفهان
           BACK_COLOR: isLight
             ? { r: 236, g: 242, b: 248 }
             : { r: 15, g: 23, b: 42 },

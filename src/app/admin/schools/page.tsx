@@ -121,7 +121,7 @@ export default async function AdminSchoolsPage({
     }),
     prisma.user.findMany({
       where: { role: "EVALUATOR", isActive: true },
-      select: { id: true, fullName: true, username: true },
+      select: { id: true, fullName: true, username: true, shebaNumber: true },
       orderBy: { fullName: "asc" },
     }),
     prisma.school.count(),
@@ -140,9 +140,9 @@ export default async function AdminSchoolsPage({
     const avgScore =
       evaluatedCount > 0
         ? evaluatedTeachers.reduce(
-            (sum, t) => sum + (t.evaluations[0]?.totalWeightedScore || 0),
-            0
-          ) / evaluatedCount
+          (sum, t) => sum + (t.evaluations[0]?.totalWeightedScore || 0),
+          0
+        ) / evaluatedCount
         : null;
 
     // تعداد معلمان در وضعیت‌های مختلف همکاری
@@ -363,11 +363,11 @@ export default async function AdminSchoolsPage({
   const overallAvgScore =
     schoolsWithEvaluations.length > 0
       ? (
-          schoolsWithEvaluations.reduce(
-            (sum, s) => sum + (s.avgScore || 0),
-            0
-          ) / schoolsWithEvaluations.length
-        ).toFixed(1)
+        schoolsWithEvaluations.reduce(
+          (sum, s) => sum + (s.avgScore || 0),
+          0
+        ) / schoolsWithEvaluations.length
+      ).toFixed(1)
       : "—";
 
   // ۷. کمکی برای ساخت URL مرتب‌سازی ستون‌های جدول
@@ -417,6 +417,7 @@ export default async function AdminSchoolsPage({
     "نوع مالکیت",
     "ارزیاب متصل (کارتابل)",
     "نام کاربری ارزیاب",
+    "شماره شبا ارزیاب",
     "رویکرد غالب تربیتی",
     "نگرش به علوم انسانی",
     "تعداد کل کادر و معلمان",
@@ -442,6 +443,7 @@ export default async function AdminSchoolsPage({
     getOwnershipLabel(s.ownershipType),
     s.assignedEvaluator ? s.assignedEvaluator.fullName : "بدون ارزیاب",
     s.assignedEvaluator ? s.assignedEvaluator.username : "-",
+    s.assignedEvaluator?.shebaNumber || "ثبت‌نشده",
     getApproachLabel(s.dominantApproach),
     getAttitudeText(s.humanitiesAttitude),
     s.totalTeachers,
@@ -533,8 +535,8 @@ export default async function AdminSchoolsPage({
             <p className="text-[11px] text-emerald-600 font-medium mt-1">
               {processedSchools.length > 0
                 ? `${Math.round(
-                    (totalAssignedSchools / processedSchools.length) * 100
-                  )}٪ پوشش ارزیاب فعال`
+                  (totalAssignedSchools / processedSchools.length) * 100
+                )}٪ پوشش ارزیاب فعال`
                 : "—"}
             </p>
           </div>
@@ -557,10 +559,10 @@ export default async function AdminSchoolsPage({
             <p className="text-[11px] text-indigo-600 font-medium mt-1">
               {totalTeachersAcrossSchools > 0
                 ? `${Math.round(
-                    (totalEvaluatedTeachersAcrossSchools /
-                      totalTeachersAcrossSchools) *
-                      100
-                  )}٪ کادر دارای کارنامه نهایی`
+                  (totalEvaluatedTeachersAcrossSchools /
+                    totalTeachersAcrossSchools) *
+                  100
+                )}٪ کادر دارای کارنامه نهایی`
                 : "در انتظار ثبت کادر"}
             </p>
           </div>
@@ -763,7 +765,7 @@ export default async function AdminSchoolsPage({
           </div>
         </div>
 
-        <div className="overflow-x-auto min-h-[420px] pb-20">
+        <div className="overflow-x-auto min-h-105 pb-20">
           <table className="w-full text-right text-sm">
             <thead className="bg-slate-50/90 text-slate-600 border-b border-slate-200/80 text-xs font-bold select-none">
               <tr>
@@ -955,11 +957,10 @@ export default async function AdminSchoolsPage({
                     {/* تعداد ارزیابی‌شده‌ها */}
                     <td className="py-4 px-4 text-center">
                       <span
-                        className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold ${
-                          school.evaluatedCount > 0
+                        className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold ${school.evaluatedCount > 0
                             ? "bg-indigo-50 text-indigo-700 border border-indigo-200/50"
                             : "bg-slate-100 text-slate-400"
-                        }`}
+                          }`}
                       >
                         {school.evaluatedCount} معلم
                       </span>
@@ -970,15 +971,14 @@ export default async function AdminSchoolsPage({
                       {school.avgScore !== null ? (
                         <div className="inline-flex flex-col items-center">
                           <div
-                            className={`text-base font-black ${
-                              school.avgScore >= 75
+                            className={`text-base font-black ${school.avgScore >= 75
                                 ? "text-emerald-600"
                                 : school.avgScore >= 50
-                                ? "text-indigo-600"
-                                : school.avgScore >= 30
-                                ? "text-amber-600"
-                                : "text-rose-600"
-                            }`}
+                                  ? "text-indigo-600"
+                                  : school.avgScore >= 30
+                                    ? "text-amber-600"
+                                    : "text-rose-600"
+                              }`}
                           >
                             {school.avgScore.toFixed(1)}
                             <span className="text-[10px] font-normal text-slate-400 mr-0.5">
@@ -988,15 +988,14 @@ export default async function AdminSchoolsPage({
                           {/* نوار کوچک گرافیکی نمره */}
                           <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1">
                             <div
-                              className={`h-full rounded-full ${
-                                school.avgScore >= 75
-                                ? "bg-emerald-500"
-                                : school.avgScore >= 50
-                                ? "bg-indigo-500"
-                                : school.avgScore >= 30
-                                ? "bg-amber-500"
-                                : "bg-rose-500"
-                              }`}
+                              className={`h-full rounded-full ${school.avgScore >= 75
+                                  ? "bg-emerald-500"
+                                  : school.avgScore >= 50
+                                    ? "bg-indigo-500"
+                                    : school.avgScore >= 30
+                                      ? "bg-amber-500"
+                                      : "bg-rose-500"
+                                }`}
                               style={{
                                 width: `${Math.min(
                                   Math.max(school.avgScore, 5),
