@@ -47,7 +47,7 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="نام کاربری یا شماره همراه خود را وارد کنید"
-                  className="w-full bg-slate-900/60 border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-3.5 py-2.5 pl-10 text-sm text-white placeholder:text-slate-500 transition outline-none"
+                  className="w-full bg-slate-900/60 border border-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-xl px-3.5 py-2.5 pl-10 text-sm text-white placeholder:text-slate-500 transition outline-none"
                 />
                 <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
               </div>
@@ -65,7 +65,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-900/60 border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-3.5 py-2.5 pl-10 text-sm text-white placeholder:text-slate-500 transition outline-none"
+                  className="w-full bg-slate-900/60 border border-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-xl px-3.5 py-2.5 pl-10 text-sm text-white placeholder:text-slate-500 transition outline-none"
                 />
                 <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
               </div>
