@@ -28,7 +28,7 @@ import {
   deleteSchoolExpenseAction,
   getSchoolExpensesAction,
 } from "@/app/actions/expense";
-import { numberToPersianWords, formatToman } from "@/lib/numberToWords";
+import { numberToPersianWords, formatNumberFa, extractCleanNumber } from "@/lib/numberToWords";
 
 interface SchoolExpenseModalProps {
   schoolId: string;
@@ -139,7 +139,7 @@ export default function SchoolExpenseModal({
 
   // تغییر فیلد مبلغ با حفظ اعداد و حذف کاراکترهای اضافه
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/[^\d]/g, "");
+    const val = extractCleanNumber(e.target.value);
     setRawAmount(val);
   };
 
@@ -221,8 +221,8 @@ export default function SchoolExpenseModal({
         <Receipt className={`w-3.5 h-3.5 ${currentTotal > 0 ? "text-amber-600" : "text-slate-500"}`} />
         <span>تنخواه و مخارج</span>
         {currentTotal > 0 ? (
-          <span className="font-mono text-[11px] font-extrabold bg-amber-500 text-white px-1.5 py-0.2 rounded-full">
-            {currentTotal.toLocaleString("fa-IR")} ت
+          <span className="text-[11px] font-black bg-amber-500 text-white px-2 py-0.5 rounded-full">
+            {formatNumberFa(currentTotal)} ت
           </span>
         ) : (
           currentCount > 0 && (
@@ -271,73 +271,88 @@ export default function SchoolExpenseModal({
 
             {/* کارت‌های آماری سرجمع مالی */}
             <div className="p-4 bg-slate-50/70 border-b border-slate-200/80 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200 shadow-2xs">
+              <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
                 <span className="text-[11px] text-slate-400 font-medium block">
                   مجموع کل مخارج:
                 </span>
-                <span className="font-mono text-sm sm:text-base font-black text-slate-800 block mt-0.5" dir="ltr">
-                  {formatToman(summary.totalAmount)}
-                </span>
-                <span className="text-[10px] text-slate-400">
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-base sm:text-xl font-black text-slate-900 tracking-tight">
+                    {formatNumberFa(summary.totalAmount)}
+                  </span>
+                  <span className="text-xs font-bold text-slate-500">تومان</span>
+                </div>
+                <span className="text-[10px] text-slate-400 block mt-0.5">
                   {expenses.length} فاکتور ثبت‌شده
                 </span>
               </div>
 
-              <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200 shadow-2xs">
+              <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
                 <span className="text-[11px] text-slate-400 font-medium block">
                   تنخواه واریزی اولیه:
                 </span>
                 {summary.pettyCashAmount ? (
                   <>
-                    <span className="font-mono text-sm sm:text-base font-black text-emerald-700 block mt-0.5" dir="ltr">
-                      {formatToman(summary.pettyCashAmount)}
-                    </span>
-                    <span className="text-[10px] text-emerald-600 font-medium">
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="text-base sm:text-xl font-black text-emerald-700 tracking-tight">
+                        {formatNumberFa(summary.pettyCashAmount)}
+                      </span>
+                      <span className="text-xs font-bold text-emerald-600">تومان</span>
+                    </div>
+                    <span className="text-[10px] text-emerald-600 font-medium block mt-0.5">
                       واریز شده توسط مدیر
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-xs font-bold text-slate-500 block mt-1">
+                    <span className="text-xs font-bold text-slate-500 block mt-1.5">
                       ثبت‌نشده
                     </span>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-slate-400 block mt-0.5">
                       محاسبه بر اساس مخارج
                     </span>
                   </>
                 )}
               </div>
 
-              <div className="col-span-2 sm:col-span-1 bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200 shadow-2xs">
+              <div className="col-span-2 sm:col-span-1 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
                 <span className="text-[11px] text-slate-400 font-medium block">
                   وضعیت تراز مالی:
                 </span>
                 {summary.pettyCashAmount ? (
                   summary.remainingBalance >= 0 ? (
                     <div>
-                      <span className="font-mono text-xs sm:text-sm font-black text-emerald-600 block mt-0.5" dir="ltr">
-                        {formatToman(summary.remainingBalance)}
-                      </span>
-                      <span className="text-[10px] text-emerald-700 font-bold">
+                      <div className="flex items-baseline gap-1 mt-1">
+                        <span className="text-base sm:text-lg font-black text-emerald-600 tracking-tight">
+                          {formatNumberFa(summary.remainingBalance)}
+                        </span>
+                        <span className="text-xs font-bold text-emerald-600">تومان</span>
+                      </div>
+                      <span className="text-[10px] text-emerald-700 font-bold block mt-0.5">
                         مانده تنخواه نزد شما
                       </span>
                     </div>
                   ) : (
                     <div>
-                      <span className="font-mono text-xs sm:text-sm font-black text-rose-600 block mt-0.5" dir="ltr">
-                        {formatToman(Math.abs(summary.remainingBalance))}
-                      </span>
-                      <span className="text-[10px] text-rose-600 font-bold">
+                      <div className="flex items-baseline gap-1 mt-1">
+                        <span className="text-base sm:text-lg font-black text-rose-600 tracking-tight">
+                          {formatNumberFa(Math.abs(summary.remainingBalance))}
+                        </span>
+                        <span className="text-xs font-bold text-rose-600">تومان</span>
+                      </div>
+                      <span className="text-[10px] text-rose-600 font-bold block mt-0.5">
                         طلب شما (مازاد تنخواه)
                       </span>
                     </div>
                   )
                 ) : (
                   <div>
-                    <span className="font-mono text-xs sm:text-sm font-black text-amber-700 block mt-0.5" dir="ltr">
-                      {formatToman(summary.totalAmount)}
-                    </span>
-                    <span className="text-[10px] text-amber-700 font-bold">
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="text-base sm:text-lg font-black text-amber-700 tracking-tight">
+                        {formatNumberFa(summary.totalAmount)}
+                      </span>
+                      <span className="text-xs font-bold text-amber-700">تومان</span>
+                    </div>
+                    <span className="text-[10px] text-amber-700 font-bold block mt-0.5">
                       مبلغ قابل تسویه
                     </span>
                   </div>
@@ -455,10 +470,9 @@ export default function SchoolExpenseModal({
                           onChange={handleAmountChange}
                           placeholder="مثال: ۱۵۰,۰۰۰"
                           required
-                          dir="ltr"
-                          className="w-full font-mono text-sm font-bold pl-12 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition text-slate-800"
+                          className="w-full text-base font-bold pl-14 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition text-slate-800"
                         />
-                        <span className="absolute left-3 top-3 text-[11px] font-bold text-slate-400">
+                        <span className="absolute left-3.5 top-3 text-xs font-bold text-slate-400">
                           تومان
                         </span>
                       </div>
@@ -589,9 +603,14 @@ export default function SchoolExpenseModal({
                             </div>
 
                             <div className="text-left shrink-0">
-                              <span className="font-mono text-sm font-black text-slate-800 block" dir="ltr">
-                                {formatToman(item.amount)}
-                              </span>
+                              <div className="flex items-baseline gap-1 justify-end">
+                                <span className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                                  {formatNumberFa(item.amount)}
+                                </span>
+                                <span className="text-xs font-semibold text-slate-500">
+                                  تومان
+                                </span>
+                              </div>
                               <div className="mt-1">
                                 {item.status === "APPROVED" ? (
                                   <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md">

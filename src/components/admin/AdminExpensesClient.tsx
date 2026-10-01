@@ -28,7 +28,7 @@ import {
   updateExpenseStatusAction,
   deleteSchoolExpenseAction,
 } from "@/app/actions/expense";
-import { formatToman } from "@/lib/numberToWords";
+import { formatNumberFa } from "@/lib/numberToWords";
 import { CopyableSheba } from "@/components/admin/CopyableSheba";
 
 export interface ExpenseRow {
@@ -191,9 +191,12 @@ export default function AdminExpensesClient({
               <Receipt className="w-4 h-4" />
             </div>
           </div>
-          <span className="font-mono text-lg sm:text-2xl font-black text-slate-900 block" dir="ltr">
-            {formatToman(totalAmount)}
-          </span>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              {formatNumberFa(totalAmount)}
+            </span>
+            <span className="text-xs font-bold text-slate-500">تومان</span>
+          </div>
           <span className="text-[11px] text-slate-400 mt-1 block">
             {filtered.length} فاکتور ثبت‌شده
           </span>
@@ -206,9 +209,12 @@ export default function AdminExpensesClient({
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <span className="font-mono text-lg sm:text-2xl font-black text-emerald-700 block" dir="ltr">
-            {formatToman(approvedAmount)}
-          </span>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">
+              {formatNumberFa(approvedAmount)}
+            </span>
+            <span className="text-xs font-bold text-emerald-600">تومان</span>
+          </div>
           <span className="text-[11px] text-emerald-600 font-medium mt-1 block">
             {filtered.filter((e) => e.status === "APPROVED").length} مورد نهایی
           </span>
@@ -221,9 +227,12 @@ export default function AdminExpensesClient({
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <span className="font-mono text-lg sm:text-2xl font-black text-amber-600 block" dir="ltr">
-            {formatToman(pendingAmount)}
-          </span>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xl sm:text-2xl font-black text-amber-600 tracking-tight">
+              {formatNumberFa(pendingAmount)}
+            </span>
+            <span className="text-xs font-bold text-amber-600">تومان</span>
+          </div>
           <span className="text-[11px] text-amber-600 font-medium mt-1 block">
             {filtered.filter((e) => e.status === "PENDING").length} فاکتور منتظر اقدام
           </span>
@@ -236,9 +245,12 @@ export default function AdminExpensesClient({
               <XCircle className="w-4 h-4" />
             </div>
           </div>
-          <span className="font-mono text-lg sm:text-2xl font-black text-rose-600 block" dir="ltr">
-            {formatToman(rejectedAmount)}
-          </span>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xl sm:text-2xl font-black text-rose-600 tracking-tight">
+              {formatNumberFa(rejectedAmount)}
+            </span>
+            <span className="text-xs font-bold text-rose-600">تومان</span>
+          </div>
           <span className="text-[11px] text-rose-600 font-medium mt-1 block">
             {filtered.filter((e) => e.status === "REJECTED").length} مورد عدم تایید
           </span>
@@ -444,8 +456,15 @@ export default function AdminExpensesClient({
                       </td>
 
                       {/* مبلغ */}
-                      <td className="p-3.5 align-top text-left font-mono font-black text-sm text-slate-900 whitespace-nowrap" dir="ltr">
-                        {formatToman(item.amount)}
+                      <td className="p-3.5 align-top text-left whitespace-nowrap">
+                        <div className="inline-flex items-baseline gap-1" dir="rtl">
+                          <span className="font-black text-sm sm:text-base text-slate-900 tracking-tight">
+                            {formatNumberFa(item.amount)}
+                          </span>
+                          <span className="text-[11px] font-semibold text-slate-500">
+                            تومان
+                          </span>
+                        </div>
                       </td>
 
                       {/* تاریخ */}

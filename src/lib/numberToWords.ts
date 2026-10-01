@@ -1,4 +1,38 @@
 /**
+ * تبدیل ارقام فارسی و عربی به ارقام استاندارد انگلیسی
+ */
+export function toEnglishDigits(str: string): string {
+  if (!str) return "";
+  return str
+    .replace(/[۰-۹]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1728))
+    .replace(/[٠-٩]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1584));
+}
+
+/**
+ * استخراج ارقام تمیز از ورودی کاربر با حذف کاما، فاصله و حروف
+ */
+export function extractCleanNumber(input: string): string {
+  if (!input) return "";
+  return toEnglishDigits(input).replace(/[^\d]/g, "");
+}
+
+/**
+ * فرمت‌بندی اعداد به خط زیبای فارسی با جداکننده سه رقمی
+ */
+export function formatNumberFa(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined || isNaN(amount)) return "۰";
+  return amount.toLocaleString("fa-IR");
+}
+
+/**
+ * فرمت‌بندی سه رقم سه رقم به همراه برچسب تومان
+ */
+export function formatToman(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined || isNaN(amount)) return "۰ تومان";
+  return `${amount.toLocaleString("fa-IR")} تومان`;
+}
+
+/**
  * تبدیل اعداد به حروف فارسی (برای مبالغ تومان و ریال)
  */
 export function numberToPersianWords(num: number): string {
@@ -78,12 +112,4 @@ export function numberToPersianWords(num: number): string {
   }
 
   return chunks.join(" و ") + " تومان";
-}
-
-/**
- * فرمت‌بندی سه رقم سه رقم عدد
- */
-export function formatToman(amount: number): string {
-  if (isNaN(amount)) return "۰ تومان";
-  return amount.toLocaleString("fa-IR") + " تومان";
 }

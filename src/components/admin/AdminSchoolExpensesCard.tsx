@@ -27,7 +27,7 @@ import {
   updateSchoolPettyCashAllocationAction,
   deleteSchoolExpenseAction,
 } from "@/app/actions/expense";
-import { formatToman, numberToPersianWords } from "@/lib/numberToWords";
+import { formatToman, formatNumberFa, extractCleanNumber, numberToPersianWords } from "@/lib/numberToWords";
 import { CopyableSheba } from "@/components/admin/CopyableSheba";
 
 export interface ExpenseRecord {
@@ -95,7 +95,7 @@ export function AdminSchoolExpensesCard({
   const handleSavePettyCash = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingPettyCash(true);
-    const num = pettyCashInput.trim() ? parseInt(pettyCashInput.replace(/[^\d]/g, ""), 10) : null;
+    const num = pettyCashInput.trim() ? parseInt(extractCleanNumber(pettyCashInput), 10) : null;
     const res = await updateSchoolPettyCashAllocationAction({
       schoolId,
       pettyCashAmount: num,
@@ -195,12 +195,11 @@ export function AdminSchoolExpensesCard({
               <input
                 type="text"
                 inputMode="numeric"
-                value={pettyCashInput}
-                onChange={(e) => setPettyCashInput(e.target.value.replace(/[^\d]/g, ""))}
+                value={pettyCashInput ? Number(extractCleanNumber(pettyCashInput)).toLocaleString("fa-IR") : ""}
+                onChange={(e) => setPettyCashInput(extractCleanNumber(e.target.value))}
                 placeholder="مبلغ تنخواه به تومان..."
                 autoFocus
-                dir="ltr"
-                className="font-mono text-xs px-2.5 py-1.5 bg-white border border-amber-400 rounded-xl outline-none focus:ring-1 focus:ring-amber-500 w-36 text-slate-800 font-bold"
+                className="text-xs px-2.5 py-1.5 bg-white border border-amber-400 rounded-xl outline-none focus:ring-1 focus:ring-amber-500 w-36 text-slate-800 font-bold"
               />
               <button
                 type="submit"
@@ -225,9 +224,12 @@ export function AdminSchoolExpensesCard({
                 <Wallet className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                 <span className="text-xs text-slate-500">تنخواه واریزی:</span>
                 {pettyCash ? (
-                  <span className="font-mono text-xs font-black text-slate-800" dir="ltr">
-                    {formatToman(pettyCash)}
-                  </span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xs font-black text-slate-800">
+                      {formatNumberFa(pettyCash)}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-500">تومان</span>
+                  </div>
                 ) : (
                   <span className="text-xs font-medium text-slate-400">ثبت‌نشده</span>
                 )}
@@ -252,9 +254,12 @@ export function AdminSchoolExpensesCard({
       <div className="p-5 bg-slate-50/60 border-b border-slate-200/80 grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
           <span className="text-xs text-slate-400 font-medium block">کل مخارج ثبت‌شده</span>
-          <span className="font-mono text-base font-black text-slate-900 block mt-1" dir="ltr">
-            {formatToman(totalAmount)}
-          </span>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-base font-black text-slate-900 tracking-tight">
+              {formatNumberFa(totalAmount)}
+            </span>
+            <span className="text-xs font-bold text-slate-500">تومان</span>
+          </div>
           <span className="text-[11px] text-slate-500 mt-0.5 block">
             {expenses.length} فاکتور ارزیاب
           </span>
@@ -262,9 +267,12 @@ export function AdminSchoolExpensesCard({
 
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
           <span className="text-xs text-slate-400 font-medium block">مخارج تاییدشده</span>
-          <span className="font-mono text-base font-black text-emerald-700 block mt-1" dir="ltr">
-            {formatToman(approvedAmount)}
-          </span>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-base font-black text-emerald-700 tracking-tight">
+              {formatNumberFa(approvedAmount)}
+            </span>
+            <span className="text-xs font-bold text-emerald-600">تومان</span>
+          </div>
           <span className="text-[11px] text-emerald-600 font-medium mt-0.5 block">
             {expenses.filter((e) => e.status === "APPROVED").length} مورد نهایی
           </span>
@@ -272,9 +280,12 @@ export function AdminSchoolExpensesCard({
 
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
           <span className="text-xs text-slate-400 font-medium block">در انتظار بررسی مدیر</span>
-          <span className="font-mono text-base font-black text-amber-700 block mt-1" dir="ltr">
-            {formatToman(pendingAmount)}
-          </span>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-base font-black text-amber-700 tracking-tight">
+              {formatNumberFa(pendingAmount)}
+            </span>
+            <span className="text-xs font-bold text-amber-600">تومان</span>
+          </div>
           <span className="text-[11px] text-amber-600 font-medium mt-0.5 block">
             {expenses.filter((e) => e.status === "PENDING").length} مورد نیاز به تایید
           </span>
@@ -285,18 +296,24 @@ export function AdminSchoolExpensesCard({
           {pettyCash ? (
             balance >= 0 ? (
               <div>
-                <span className="font-mono text-base font-black text-emerald-600 block mt-1" dir="ltr">
-                  {formatToman(balance)}
-                </span>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-base font-black text-emerald-600 tracking-tight">
+                    {formatNumberFa(balance)}
+                  </span>
+                  <span className="text-xs font-bold text-emerald-600">تومان</span>
+                </div>
                 <span className="text-[11px] text-emerald-700 font-bold block mt-0.5">
                   مانده تنخواه نزد ارزیاب
                 </span>
               </div>
             ) : (
               <div>
-                <span className="font-mono text-base font-black text-rose-600 block mt-1" dir="ltr">
-                  {formatToman(Math.abs(balance))}
-                </span>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-base font-black text-rose-600 tracking-tight">
+                    {formatNumberFa(Math.abs(balance))}
+                  </span>
+                  <span className="text-xs font-bold text-rose-600">تومان</span>
+                </div>
                 <span className="text-[11px] text-rose-600 font-bold block mt-0.5">
                   طلب ارزیاب از سازمان
                 </span>
@@ -304,9 +321,12 @@ export function AdminSchoolExpensesCard({
             )
           ) : (
             <div>
-              <span className="font-mono text-base font-black text-slate-700 block mt-1" dir="ltr">
-                {formatToman(totalAmount)}
-              </span>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-base font-black text-slate-700 tracking-tight">
+                  {formatNumberFa(totalAmount)}
+                </span>
+                <span className="text-xs font-bold text-slate-500">تومان</span>
+              </div>
               <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
                 قابل تسویه نقدی
               </span>
@@ -332,8 +352,8 @@ export function AdminSchoolExpensesCard({
               type="button"
               onClick={() => setStatusFilter(tab.key)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${statusFilter === tab.key
-                  ? "bg-amber-500 text-white shadow-xs"
-                  : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                ? "bg-amber-500 text-white shadow-xs"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-600"
                 }`}
             >
               {tab.label}
@@ -401,9 +421,14 @@ export function AdminSchoolExpensesCard({
 
                   {/* مبلغ و نشان وضعیت */}
                   <div className="flex items-center sm:flex-col sm:items-end justify-between sm:justify-start gap-2 shrink-0">
-                    <span className="font-mono text-base font-black text-slate-900" dir="ltr">
-                      {formatToman(expense.amount)}
-                    </span>
+                    <div className="inline-flex items-baseline gap-1" dir="rtl">
+                      <span className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                        {formatNumberFa(expense.amount)}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        تومان
+                      </span>
+                    </div>
 
                     <div>
                       {expense.status === "APPROVED" ? (

@@ -931,7 +931,7 @@ export default async function AdminSchoolsPage({
                             title="مشاهده فاکتورهای تنخواه این مدرسه"
                           >
                             <span>تنخواه:</span>
-                            <span className="font-mono" dir="ltr">{school.totalExpenses.toLocaleString("fa-IR")} تومان</span>
+                            <span className="font-bold">{school.totalExpenses.toLocaleString("fa-IR")} تومان</span>
                             <span className="text-amber-600">({school.expensesCount})</span>
                           </Link>
                         )}
