@@ -24,6 +24,8 @@ export default async function AdminExpensesPage() {
             city: true,
             district: true,
             pettyCashAmount: true,
+            pettyCashPaid: true,
+            pettyCashPaidAt: true,
           },
         },
         evaluator: {

@@ -161,6 +161,7 @@ export default async function EvaluatorSchoolDetailPage({
               initialExpensesCount={school.expenses.length}
               initialTotalExpenses={school.expenses.reduce((sum, e) => sum + e.amount, 0)}
               initialPettyCashAmount={school.pettyCashAmount}
+              initialPettyCashPaid={school.pettyCashPaid}
               buttonClassName="py-2.5 px-4 rounded-2xl text-xs sm:text-sm shadow-sm"
             />
 

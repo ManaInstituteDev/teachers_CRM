@@ -37,6 +37,7 @@ interface SchoolExpenseModalProps {
   initialExpensesCount?: number;
   initialTotalExpenses?: number;
   initialPettyCashAmount?: number | null;
+  initialPettyCashPaid?: boolean;
   buttonVariant?: "default" | "compact" | "card";
   buttonClassName?: string;
 }
@@ -73,6 +74,7 @@ export default function SchoolExpenseModal({
   initialExpensesCount = 0,
   initialTotalExpenses = 0,
   initialPettyCashAmount = null,
+  initialPettyCashPaid = false,
   buttonVariant = "default",
   buttonClassName = "",
 }: SchoolExpenseModalProps) {
@@ -87,6 +89,7 @@ export default function SchoolExpenseModal({
     approvedAmount: 0,
     pendingAmount: 0,
     pettyCashAmount: initialPettyCashAmount,
+    pettyCashPaid: initialPettyCashPaid,
     remainingBalance: (initialPettyCashAmount || 0) - initialTotalExpenses,
   });
 
@@ -298,9 +301,17 @@ export default function SchoolExpenseModal({
                       </span>
                       <span className="text-xs font-bold text-emerald-600">تومان</span>
                     </div>
-                    <span className="text-[10px] text-emerald-600 font-medium block mt-0.5">
-                      واریز شده توسط مدیر
-                    </span>
+                    {summary.pettyCashPaid ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded mt-0.5 border border-emerald-200">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        به حساب شما واریز شد
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 font-medium bg-amber-50 px-1.5 py-0.5 rounded mt-0.5 border border-amber-200">
+                        <Clock className="w-3 h-3 text-amber-500" />
+                        در انتظار واریز توسط مدیر
+                      </span>
+                    )}
                   </>
                 ) : (
                   <>

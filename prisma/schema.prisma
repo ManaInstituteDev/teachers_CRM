@@ -191,6 +191,8 @@ model School {
   referrers       SchoolReferrer[]
   expenses        SchoolExpense[]
   pettyCashAmount Int?                   // مبلغ تنخواه اولیه واریزی مصوب به ارزیاب برای این مدرسه (به تومان)
+  pettyCashPaid   Boolean                @default(false) // آیا تنخواه به ارزیاب واریز شده است؟
+  pettyCashPaidAt DateTime?              // تاریخ واریز تنخواه
 
   @@map("schools")
 }

@@ -264,6 +264,8 @@ export default async function SchoolDetailPage({
         schoolId={school.id}
         schoolName={school.name}
         pettyCashAmount={school.pettyCashAmount}
+        pettyCashPaid={school.pettyCashPaid}
+        pettyCashPaidAt={school.pettyCashPaidAt}
         expenses={school.expenses as any}
       />
 

@@ -30,6 +30,7 @@ import {
 } from "@/app/actions/expense";
 import { formatNumberFa } from "@/lib/numberToWords";
 import { CopyableSheba } from "@/components/admin/CopyableSheba";
+import { PettyCashPaidToggle } from "@/components/admin/PettyCashPaidToggle";
 
 export interface ExpenseRow {
   id: string;
@@ -49,6 +50,8 @@ export interface ExpenseRow {
     city: string;
     district: string;
     pettyCashAmount: number | null;
+    pettyCashPaid?: boolean;
+    pettyCashPaidAt?: Date | string | null;
   };
   evaluatorId: string;
   evaluator: {
@@ -405,6 +408,14 @@ export default function AdminExpensesClient({
                         <span className="text-[10px] text-slate-400 block mt-0.5">
                           {item.school.city} - {item.school.district}
                         </span>
+                        <div className="mt-1.5">
+                          <PettyCashPaidToggle
+                            schoolId={item.school.id}
+                            initialIsPaid={item.school.pettyCashPaid ?? false}
+                            initialPaidAt={item.school.pettyCashPaidAt}
+                            pettyCashAmount={item.school.pettyCashAmount}
+                          />
+                        </div>
                       </td>
 
                       {/* عنوان و شرح */}

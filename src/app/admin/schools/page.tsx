@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { AssignEvaluatorForm } from "@/components/admin/AssignEvaluatorForm";
 import { ExportDataButton } from "@/components/admin/ExportDataButton";
+import { PettyCashPaidToggle } from "@/components/admin/PettyCashPaidToggle";
 import SearchableEvaluatorSelect from "@/components/SearchableEvaluatorSelect";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +39,7 @@ interface SearchParamsProps {
   dominantApproach?: string;
   humanitiesAttitude?: string;
   evalStatus?: string; // ALL, has_evaluations, no_evaluations, assigned, unassigned
+  pettyCash?: string; // ALL, PAID, UNPAID
   sortBy?: string; // avgScore, totalTeachers, evaluatedCount, keyAxisCount, name, district, ownershipType, dominantApproach, evaluator, createdAt
   sortOrder?: string; // asc, desc
 }
@@ -54,11 +56,18 @@ export default async function AdminSchoolsPage({
   const dominantApproach = params.dominantApproach || "ALL";
   const humanitiesAttitude = params.humanitiesAttitude || "ALL";
   const evalStatus = params.evalStatus || "ALL";
+  const pettyCashFilter = params.pettyCash || "ALL";
   const sortBy = params.sortBy || "avgScore";
   const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
 
   // ۱. ساخت فیلترهای پرس‌وجو
   const whereClause: any = {};
+
+  if (pettyCashFilter === "PAID") {
+    whereClause.pettyCashPaid = true;
+  } else if (pettyCashFilter === "UNPAID") {
+    whereClause.pettyCashPaid = false;
+  }
 
   if (q) {
     whereClause.OR = [
@@ -396,6 +405,7 @@ export default async function AdminSchoolsPage({
     if (humanitiesAttitude !== "ALL")
       currentParams.set("humanitiesAttitude", humanitiesAttitude);
     if (evalStatus !== "ALL") currentParams.set("evalStatus", evalStatus);
+    if (pettyCashFilter !== "ALL") currentParams.set("pettyCash", pettyCashFilter);
 
     currentParams.set("sortBy", field);
     currentParams.set("sortOrder", nextOrder);
@@ -474,7 +484,8 @@ export default async function AdminSchoolsPage({
     ownershipType !== "ALL" ||
     dominantApproach !== "ALL" ||
     humanitiesAttitude !== "ALL" ||
-    evalStatus !== "ALL";
+    evalStatus !== "ALL" ||
+    pettyCashFilter !== "ALL";
 
   return (
     <div className="p-4 sm:p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
@@ -648,7 +659,22 @@ export default async function AdminSchoolsPage({
           </div>
 
           {/* ردیف دوم: انتخابگرهای چندگانه فیلتر */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 pt-1">
+            {/* فیلتر وضعیت واریز تنخواه */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                وضعیت واریز تنخواه:
+              </label>
+              <select
+                name="pettyCash"
+                defaultValue={pettyCashFilter}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:border-indigo-500 transition cursor-pointer"
+              >
+                <option value="ALL">همه موارد</option>
+                <option value="PAID">واریز شده ✓</option>
+                <option value="UNPAID">در انتظار واریز ⏳</option>
+              </select>
+            </div>
             {/* فیلتر ارزیاب متصل */}
             <div>
               <label className="block text-[11px] font-bold text-slate-600 mb-1">
@@ -935,6 +961,15 @@ export default async function AdminSchoolsPage({
                             <span className="text-amber-600">({school.expensesCount})</span>
                           </Link>
                         )}
+                        {school.pettyCashPaid && (
+                          <span
+                            className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200"
+                            title="تنخواه این مدرسه به ارزیاب واریز شده است"
+                          >
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>تنخواه واریز شد</span>
+                          </span>
+                        )}
                       </div>
                     </td>
 
@@ -960,6 +995,17 @@ export default async function AdminSchoolsPage({
                         currentEvaluatorId={school.assignedEvaluatorId}
                         evaluators={evaluators}
                       />
+                      {school.assignedEvaluatorId && (
+                        <div className="mt-2 flex items-center gap-1.5">
+                          <PettyCashPaidToggle
+                            schoolId={school.id}
+                            initialIsPaid={school.pettyCashPaid ?? false}
+                            initialPaidAt={school.pettyCashPaidAt}
+                            pettyCashAmount={school.pettyCashAmount}
+                            showAmount={true}
+                          />
+                        </div>
+                      )}
                     </td>
 
                     {/* رویکرد غالب و نگرش علوم انسانی */}

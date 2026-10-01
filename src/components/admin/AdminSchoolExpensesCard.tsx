@@ -29,6 +29,7 @@ import {
 } from "@/app/actions/expense";
 import { formatToman, formatNumberFa, extractCleanNumber, numberToPersianWords } from "@/lib/numberToWords";
 import { CopyableSheba } from "@/components/admin/CopyableSheba";
+import { PettyCashPaidToggle } from "@/components/admin/PettyCashPaidToggle";
 
 export interface ExpenseRecord {
   id: string;
@@ -52,6 +53,8 @@ interface AdminSchoolExpensesCardProps {
   schoolId: string;
   schoolName: string;
   pettyCashAmount: number | null;
+  pettyCashPaid?: boolean;
+  pettyCashPaidAt?: Date | string | null;
   expenses: ExpenseRecord[];
 }
 
@@ -59,6 +62,8 @@ export function AdminSchoolExpensesCard({
   schoolId,
   schoolName,
   pettyCashAmount: initialPettyCash,
+  pettyCashPaid: initialPettyCashPaid = false,
+  pettyCashPaidAt: initialPettyCashPaidAt = null,
   expenses: initialExpenses,
 }: AdminSchoolExpensesCardProps) {
   const [expenses, setExpenses] = useState<ExpenseRecord[]>(initialExpenses);
@@ -248,6 +253,17 @@ export function AdminSchoolExpensesCard({
             </div>
           )}
         </div>
+      </div>
+
+      {/* نوار وضعیت واریز تنخواه به ارزیاب */}
+      <div className="px-5 pt-4 bg-slate-50/50">
+        <PettyCashPaidToggle
+          schoolId={schoolId}
+          initialIsPaid={initialPettyCashPaid}
+          initialPaidAt={initialPettyCashPaidAt}
+          pettyCashAmount={pettyCash}
+          variant="card"
+        />
       </div>
 
       {/* کارت‌های آماری سرجمع مالی */}

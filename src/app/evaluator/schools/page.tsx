@@ -304,6 +304,7 @@ export default async function EvaluatorSchoolsPage({
                       initialExpensesCount={school.expenses.length}
                       initialTotalExpenses={school.expenses.reduce((sum, e) => sum + e.amount, 0)}
                       initialPettyCashAmount={school.pettyCashAmount}
+                      initialPettyCashPaid={school.pettyCashPaid}
                     />
                   </div>
 

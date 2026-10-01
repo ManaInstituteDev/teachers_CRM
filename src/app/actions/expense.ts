@@ -295,6 +295,49 @@ export async function updateSchoolPettyCashAllocationAction({
 }
 
 /**
+ * تغییر وضعیت واریز تنخواه به ارزیاب توسط مدیر (تیک واریز شد / نشد)
+ */
+export async function toggleSchoolPettyCashPaidAction({
+  schoolId,
+  isPaid,
+}: {
+  schoolId: string;
+  isPaid: boolean;
+}) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "فقط مدیر سامانه اجازه تغییر وضعیت واریز تنخواه را دارد." };
+  }
+
+  try {
+    const updated = await prisma.school.update({
+      where: { id: schoolId },
+      data: {
+        pettyCashPaid: isPaid,
+        pettyCashPaidAt: isPaid ? new Date() : null,
+      },
+      select: {
+        id: true,
+        pettyCashAmount: true,
+        pettyCashPaid: true,
+        pettyCashPaidAt: true,
+      },
+    });
+
+    revalidatePath(`/admin/schools/${schoolId}`);
+    revalidatePath(`/evaluator/schools/${schoolId}`);
+    revalidatePath("/admin/schools");
+    revalidatePath("/evaluator/schools");
+    revalidatePath("/admin/expenses");
+
+    return { success: true, school: updated };
+  } catch (err: any) {
+    console.error("Error toggling school petty cash paid:", err);
+    return { error: "خطا در به‌روزرسانی وضعیت واریز تنخواه." };
+  }
+}
+
+/**
  * دریافت لیست کلیه هزینه‌های ثبت‌شده برای یک مدرسه به همراه خلاصه مالی
  */
 export async function getSchoolExpensesAction(schoolId: string) {
@@ -312,6 +355,8 @@ export async function getSchoolExpensesAction(schoolId: string) {
           name: true,
           code: true,
           pettyCashAmount: true,
+          pettyCashPaid: true,
+          pettyCashPaidAt: true,
           assignedEvaluatorId: true,
           assignedEvaluator: {
             select: { id: true, fullName: true, shebaNumber: true },
@@ -354,6 +399,8 @@ export async function getSchoolExpensesAction(schoolId: string) {
         approvedAmount,
         pendingAmount,
         pettyCashAmount: school.pettyCashAmount,
+        pettyCashPaid: school.pettyCashPaid,
+        pettyCashPaidAt: school.pettyCashPaidAt,
         remainingBalance,
       },
     };
@@ -362,3 +409,4 @@ export async function getSchoolExpensesAction(schoolId: string) {
     return { error: "خطا در دریافت لیست هزینه‌ها." };
   }
 }
+
