@@ -8,7 +8,14 @@
     "start": "next start",
     "lint": "eslint",
     "clean:db": "node scripts/clean_db.cjs",
-    "seed:schools": "node scripts/seed_schools_and_referrers.cjs"
+    "seed:admin": "node scripts/seed_admin.cjs",
+    "seed:schools": "node scripts/seed_schools_and_referrers.cjs",
+    "db:seed": "node scripts/seed_admin.cjs && node scripts/seed_schools_and_referrers.cjs",
+    "db:schools": "node scripts/seed_schools_and_referrers.cjs",
+    "db:push": "prisma db push"
+  },
+  "prisma": {
+    "seed": "node scripts/seed_admin.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
