@@ -16,6 +16,7 @@ import {
   Compass,
   UserCheck,
 } from "lucide-react";
+import SchoolExpenseModal from "@/components/evaluator/SchoolExpenseModal";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,14 @@ export default async function EvaluatorSchoolDetailPage({
             orderBy: { createdAt: "desc" },
             take: 1,
           },
+        },
+      },
+      expenses: {
+        orderBy: { expenseDate: "desc" },
+        select: {
+          id: true,
+          amount: true,
+          status: true,
         },
       },
     },
@@ -144,6 +153,17 @@ export default async function EvaluatorSchoolDetailPage({
               </span>
             </Link>
 
+            {/* دکمه اختصاصی تنخواه و مخارج مدرسه */}
+            <SchoolExpenseModal
+              schoolId={school.id}
+              schoolName={school.name}
+              schoolCode={school.code}
+              initialExpensesCount={school.expenses.length}
+              initialTotalExpenses={school.expenses.reduce((sum, e) => sum + e.amount, 0)}
+              initialPettyCashAmount={school.pettyCashAmount}
+              buttonClassName="py-2.5 px-4 rounded-2xl text-xs sm:text-sm shadow-sm"
+            />
+
             <Link
               href={`/evaluator/evaluate?schoolId=${school.id}`}
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 transition shrink-0 cursor-pointer"
@@ -155,7 +175,7 @@ export default async function EvaluatorSchoolDetailPage({
         </div>
 
         {/* مشخصات معرف مدرسه (راهنمای مراجعه و معرفی ارزیاب) */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50/50 border border-amber-200/90 space-y-3 text-xs">
+        <div className="p-4 rounded-2xl bg-linear-to-r from-amber-50 to-orange-50/50 border border-amber-200/90 space-y-3 text-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-start sm:items-center gap-3">
               <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 shadow-2xs">
@@ -265,7 +285,7 @@ export default async function EvaluatorSchoolDetailPage({
         )}
 
         {/* کارت نتایج ارزیابی تخصصی مدرسه */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-teal-50/50 to-slate-50 border border-teal-200/70 space-y-4">
+        <div className="p-5 rounded-2xl bg-linear-to-br from-teal-50/50 to-slate-50 border border-teal-200/70 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 font-bold text-sm text-teal-950">
               <Compass className="w-4 h-4 text-teal-600" />
@@ -368,15 +388,14 @@ export default async function EvaluatorSchoolDetailPage({
 
                       <td className="py-4 px-6">
                         <span
-                          className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${
-                            t.roleTitle === "مشاور"
-                              ? "bg-purple-50 text-purple-700 border-purple-200"
-                              : t.roleTitle?.includes("معاون")
+                          className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${t.roleTitle === "مشاور"
+                            ? "bg-purple-50 text-purple-700 border-purple-200"
+                            : t.roleTitle?.includes("معاون")
                               ? "bg-sky-50 text-sky-700 border-sky-200"
                               : t.roleTitle === "مدیر"
-                              ? "bg-amber-50 text-amber-700 border-amber-200"
-                              : "bg-slate-100 text-slate-700 border-slate-200"
-                          }`}
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-slate-100 text-slate-700 border-slate-200"
+                            }`}
                         >
                           {t.roleTitle || "معلم"}
                         </span>

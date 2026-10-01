@@ -16,6 +16,7 @@ import {
   Compass,
   UserCheck,
 } from "lucide-react";
+import SchoolExpenseModal from "@/components/evaluator/SchoolExpenseModal";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,13 @@ export default async function EvaluatorSchoolsPage({
       },
       _count: {
         select: { teachers: true },
+      },
+      expenses: {
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+        },
       },
     },
   });
@@ -287,6 +295,16 @@ export default async function EvaluatorSchoolsPage({
                         {school.humanitiesAttitude || school.approachEvidence ? "ویرایش ارزیابی مدرسه" : "ثبت ارزیابی مدرسه"}
                       </span>
                     </Link>
+
+                    {/* دکمه ثبت و گزارش تنخواه و مخارج این مدرسه */}
+                    <SchoolExpenseModal
+                      schoolId={school.id}
+                      schoolName={school.name}
+                      schoolCode={school.code}
+                      initialExpensesCount={school.expenses.length}
+                      initialTotalExpenses={school.expenses.reduce((sum, e) => sum + e.amount, 0)}
+                      initialPettyCashAmount={school.pettyCashAmount}
+                    />
                   </div>
 
                   <Link

@@ -16,6 +16,7 @@ import {
 import { AssignEvaluatorForm } from "@/components/admin/AssignEvaluatorForm";
 import { SchoolReferrerManager } from "@/components/admin/SchoolReferrerManager";
 import { CopyableSheba } from "@/components/admin/CopyableSheba";
+import { AdminSchoolExpensesCard } from "@/components/admin/AdminSchoolExpensesCard";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,14 @@ export default async function SchoolDetailPage({
             evaluations: {
               orderBy: { createdAt: "desc" },
               take: 1,
+            },
+          },
+        },
+        expenses: {
+          orderBy: { expenseDate: "desc" },
+          include: {
+            evaluator: {
+              select: { id: true, fullName: true, username: true, shebaNumber: true },
             },
           },
         },
@@ -249,6 +258,14 @@ export default async function SchoolDetailPage({
           </div>
         </div>
       </div>
+
+      {/* گزارش تنخواه و مخارج ارزیابی این مدرسه */}
+      <AdminSchoolExpensesCard
+        schoolId={school.id}
+        schoolName={school.name}
+        pettyCashAmount={school.pettyCashAmount}
+        expenses={school.expenses as any}
+      />
 
       {/* ۳: شواهد عملی رویکرد تربیتی */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-3">

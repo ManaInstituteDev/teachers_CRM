@@ -2,14 +2,14 @@
 
 import { useActionState, useState, useEffect } from "react";
 import { loginAction } from "@/app/actions/auth";
-import { GraduationCap, KeyRound, User, ArrowLeft, School, Sun, Moon, Sparkles, Lock, Timer, ShieldAlert } from "lucide-react";
+import { GraduationCap, KeyRound, User, ArrowLeft, School, Sun, Moon, Lock, Timer, ShieldAlert } from "lucide-react";
 import FluidBackground from "@/components/FluidBackground";
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   // تایمر ثانیه‌شمار معکوس در صورت قفل شدن
   const [lockoutSeconds, setLockoutSeconds] = useState<number>(0);
@@ -53,7 +53,7 @@ export default function LoginPage() {
       {/* بوم شبیه‌سازی سیال دودی با حرکت موس */}
       <FluidBackground theme={theme} />
 
-      {/* دکمه تغییر تم (روشن پاستلی / تیره نئونی) در گوشه صفحه */}
+      {/* دکمه تغییر تم در گوشه صفحه */}
       <div className="fixed top-5 left-5 z-20">
         <button
           type="button"
@@ -68,12 +68,12 @@ export default function LoginPage() {
           {isLight ? (
             <>
               <Moon className="w-3.5 h-3.5 text-indigo-600" />
-              <span>حالت تیره نئونی</span>
+              <span>حالت تیره</span>
             </>
           ) : (
             <>
               <Sun className="w-3.5 h-3.5 text-amber-400" />
-              <span>حالت روشن پاستلی</span>
+              <span>حالت روشن</span>
             </>
           )}
         </button>
@@ -241,12 +241,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* راهنمای تعاملی کوچک */}
-          <div className="mt-4 pt-3 border-t border-dashed border-slate-200/50 dark:border-slate-800/60 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
-            <span>نشانگر موس را روی صفحه حرکت دهید تا امواج رنگی را ببینید</span>
-          </div>
         </div>
 
         {/* فوتر اطلاعاتی */}

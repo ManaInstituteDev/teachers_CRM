@@ -117,6 +117,13 @@ export default async function AdminSchoolsPage({
             },
           },
         },
+        expenses: {
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+          },
+        },
       },
     }),
     prisma.user.findMany({
@@ -131,6 +138,9 @@ export default async function AdminSchoolsPage({
   let processedSchools = rawSchools.map((school) => {
     const teachers = school.teachers || [];
     const totalTeachers = teachers.length;
+
+    const totalExpenses = (school.expenses || []).reduce((sum, e) => sum + e.amount, 0);
+    const expensesCount = (school.expenses || []).length;
 
     // کادر ارزیابی‌شده (دارای حداقل ۱ ارزیابی نهایی)
     const evaluatedTeachers = teachers.filter((t) => t.evaluations.length > 0);
@@ -168,6 +178,8 @@ export default async function AdminSchoolsPage({
       developmentalCount,
       occasionalCount,
       unsuitableCount,
+      totalExpenses,
+      expensesCount,
     };
   });
 
@@ -911,6 +923,17 @@ export default async function AdminSchoolsPage({
                               <span className="font-mono text-amber-700" dir="ltr">({school.referrerPhone})</span>
                             )}
                           </span>
+                        )}
+                        {school.totalExpenses > 0 && (
+                          <Link
+                            href={`/admin/schools/${school.id}`}
+                            className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100/80 hover:bg-amber-200/80 px-2 py-0.5 rounded-md border border-amber-300 transition"
+                            title="مشاهده فاکتورهای تنخواه این مدرسه"
+                          >
+                            <span>تنخواه:</span>
+                            <span className="font-mono" dir="ltr">{school.totalExpenses.toLocaleString("fa-IR")} تومان</span>
+                            <span className="text-amber-600">({school.expensesCount})</span>
+                          </Link>
                         )}
                       </div>
                     </td>

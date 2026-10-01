@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   ChevronLeft,
+  Receipt,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -100,6 +101,12 @@ export function AdminSidebar({ user, children }: AdminSidebarProps) {
       label: "گزارش و شناسنامه مدارس",
       icon: School,
       color: "text-teal-400",
+    },
+    {
+      href: "/admin/expenses",
+      label: "تنخواه و مخارج مدارس",
+      icon: Receipt,
+      color: "text-amber-400",
     },
   ];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { assignSchoolEvaluatorAction } from "@/app/actions/school";
 import { Check, Loader2 } from "lucide-react";
 import SearchableEvaluatorSelect, { EvaluatorOption } from "@/components/SearchableEvaluatorSelect";
@@ -21,6 +21,10 @@ export function AssignEvaluatorForm({
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedId(currentEvaluatorId || "");
+  }, [currentEvaluatorId]);
 
   const handleAssign = async (evaluatorId: string) => {
     const cleanId = evaluatorId === "ALL" ? "" : evaluatorId;

@@ -29,6 +29,7 @@ model User {
   teacherEvaluations TeacherEvaluation[] @relation("EvaluatorEvaluations")
   assistants         AssistantEvaluator[] @relation("EvaluatorAssistants")
   timesheets         TimesheetLog[]      @relation("EvaluatorTimesheets")
+  schoolExpenses     SchoolExpense[]     @relation("EvaluatorExpenses")
 
   @@map("users")
 }
@@ -188,8 +189,40 @@ model School {
   teachers        Teacher[]
   timesheets      TimesheetLog[]
   referrers       SchoolReferrer[]
+  expenses        SchoolExpense[]
+  pettyCashAmount Int?                   // مبلغ تنخواه اولیه واریزی مصوب به ارزیاب برای این مدرسه (به تومان)
 
   @@map("schools")
+}
+
+enum ExpenseStatus {
+  PENDING   // در انتظار تایید مدیر
+  APPROVED  // تایید شده
+  REJECTED  // رد شده
+}
+
+model SchoolExpense {
+  id          String        @id @default(cuid())
+  title       String        // عنوان خرج (مانند: کرایه اسنپ، ناهار، پرینت فرم‌ها)
+  amount      Int           // مبلغ به تومان
+  category    String?       // دسته‌بندی اختیاری (ایاب و ذهاب، پذیرایی و غذا، اقلام و تکثیر، سایر)
+  description String?       @db.Text // شرح و جزییات هزینه
+  expenseDate DateTime      @default(now()) // تاریخ انجام هزینه
+  status      ExpenseStatus @default(PENDING) // وضعیت تایید مدیر
+  adminNotes  String?       @db.Text // یادداشت مدیر جهت تایید یا علت رد
+
+  // ارتباط با مدرسه
+  schoolId    String
+  school      School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // ارزیاب ثبت‌کننده هزینه
+  evaluatorId String
+  evaluator   User          @relation("EvaluatorExpenses", fields: [evaluatorId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("school_expenses")
 }
 
 model SchoolReferrer {

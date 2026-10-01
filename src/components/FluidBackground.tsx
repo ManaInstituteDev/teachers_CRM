@@ -14,7 +14,7 @@ interface FluidBackgroundProps {
 
 export default function FluidBackground({
   className = "",
-  theme = "light",
+  theme = "dark",
   globalMouseEvents = true,
 }: FluidBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Copy, Check, CreditCard, Edit2, Loader2, X, AlertCircle } from "lucide-react";
 import { updateEvaluatorShebaAction } from "@/app/actions/timesheetApproval";
 
@@ -29,10 +29,13 @@ export function CopyableSheba({
   const [error, setError] = useState<string | null>(null);
 
   // هماهنگ‌سازی در صورت تغییر پروپ
-  if (shebaNumber !== undefined && !isEditing && shebaNumber !== sheba && !loading) {
-    setSheba(shebaNumber || "");
-    setInputVal(shebaNumber || "");
-  }
+  useEffect(() => {
+    if (!isEditing && !loading) {
+      const normalized = shebaNumber || "";
+      setSheba(normalized);
+      setInputVal(normalized);
+    }
+  }, [shebaNumber, isEditing, loading]);
 
   // کپی شماره شبا در حافظه موقت (Clipboard)
   const handleCopy = async (e: React.MouseEvent) => {
