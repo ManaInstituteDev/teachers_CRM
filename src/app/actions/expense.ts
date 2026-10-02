@@ -37,18 +37,14 @@ export async function addSchoolExpenseAction({
     return { error: "مبلغ هزینه باید عددی بزرگتر از صفر (به تومان) باشد." };
   }
 
-  // بررسی وجود مدرسه و دسترسی ارزیاب
+  // بررسی وجود مدرسه
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
-    select: { id: true, assignedEvaluatorId: true },
+    select: { id: true, name: true, assignedEvaluatorId: true },
   });
 
   if (!school) {
     return { error: "مدرسه مورد نظر یافت نشد." };
-  }
-
-  if (user.role !== "ADMIN" && school.assignedEvaluatorId !== user.id) {
-    return { error: "شما به ثبت هزینه برای این مدرسه دسترسی ندارید." };
   }
 
   try {
@@ -80,6 +76,7 @@ export async function addSchoolExpenseAction({
 
     revalidatePath("/evaluator/schools");
     revalidatePath(`/evaluator/schools/${schoolId}`);
+    revalidatePath("/evaluator/timesheets");
     revalidatePath(`/admin/schools/${schoolId}`);
     revalidatePath("/admin/schools");
     revalidatePath("/admin/expenses");
@@ -204,6 +201,7 @@ export async function deleteSchoolExpenseAction(id: string) {
 
     revalidatePath("/evaluator/schools");
     revalidatePath(`/evaluator/schools/${existing.schoolId}`);
+    revalidatePath("/evaluator/timesheets");
     revalidatePath(`/admin/schools/${existing.schoolId}`);
     revalidatePath("/admin/schools");
     revalidatePath("/admin/expenses");
@@ -243,6 +241,7 @@ export async function updateExpenseStatusAction({
 
     revalidatePath(`/admin/schools/${updated.schoolId}`);
     revalidatePath(`/evaluator/schools/${updated.schoolId}`);
+    revalidatePath("/evaluator/timesheets");
     revalidatePath("/admin/schools");
     revalidatePath("/admin/expenses");
 
@@ -250,6 +249,40 @@ export async function updateExpenseStatusAction({
   } catch (err: any) {
     console.error("Error updating expense status:", err);
     return { error: "خطا در تغییر وضعیت هزینه." };
+  }
+}
+
+/**
+ * تایید یکجای کلیه هزینه‌های در انتظار یک مدرسه توسط مدیر
+ */
+export async function approveAllSchoolExpensesAction(schoolId: string) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "فقط مدیر سامانه اجازه تایید هزینه‌ها را دارد." };
+  }
+
+  try {
+    const updated = await prisma.schoolExpense.updateMany({
+      where: {
+        schoolId,
+        status: "PENDING",
+      },
+      data: {
+        status: "APPROVED",
+        adminNotes: null,
+      },
+    });
+
+    revalidatePath(`/admin/schools/${schoolId}`);
+    revalidatePath(`/evaluator/schools/${schoolId}`);
+    revalidatePath("/evaluator/timesheets");
+    revalidatePath("/admin/schools");
+    revalidatePath("/admin/expenses");
+
+    return { success: true, count: updated.count };
+  } catch (err: any) {
+    console.error("Error approving all school expenses:", err);
+    return { error: "خطا در تایید دسته‌ای هزینه‌های این مدرسه." };
   }
 }
 

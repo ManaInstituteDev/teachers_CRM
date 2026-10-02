@@ -27,7 +27,7 @@ export function EvaluatorBottomNav() {
     },
     {
       href: "/evaluator/timesheets",
-      label: "ساعت کاری",
+      label: "ثبت فعالیت",
       icon: Clock,
       isActive: pathname.startsWith("/evaluator/timesheets"),
     },

@@ -9,32 +9,48 @@ import {
   UserCheck,
   Users,
   School,
-  Trash2,
+  Receipt,
   CheckCircle2,
   AlertCircle,
   ArrowRight,
-  TrendingUp,
+  Wallet,
+  Coins,
 } from "lucide-react";
 import TimesheetFormClient from "./TimesheetFormClient";
-import { deleteTimesheetAction } from "@/app/actions/timesheet";
+import EvaluatorRecordsClient, { TimesheetLogItem, ExpenseRecordItem } from "./EvaluatorRecordsClient";
 import { EvaluatorShebaManager } from "@/components/evaluator/EvaluatorShebaManager";
+import { formatNumberFa } from "@/lib/numberToWords";
 
 export const dynamic = "force-dynamic";
 
-export default async function EvaluatorTimesheetsPage() {
+export default async function EvaluatorTimesheetsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ schoolId?: string; tab?: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
   }
 
-  // دریافت اطلاعات همزمان: کمک‌ارزیابان، مدارس، لاگ‌ها و شماره شبای خود ارزیاب
-  const [assistants, schools, logs, userDb] = await Promise.all([
+  const { schoolId, tab } = await searchParams;
+  const initialTab = tab === "expense" ? "expense" : "timesheet";
+
+  // دریافت اطلاعات همزمان: کمک‌ارزیابان، مدارس، لاگ‌های کارکرد، فاکتورهای تنخواه و شماره شبا
+  const [assistants, schools, logs, expenses, userDb] = await Promise.all([
     prisma.assistantEvaluator.findMany({
       where: { evaluatorId: user.id, isActive: true },
       orderBy: { fullName: "asc" },
     }),
     prisma.school.findMany({
-      select: { id: true, name: true, district: true },
+      select: {
+        id: true,
+        name: true,
+        district: true,
+        code: true,
+        pettyCashAmount: true,
+        pettyCashPaid: true,
+      },
       orderBy: { name: "asc" },
     }),
     prisma.timesheetLog.findMany({
@@ -45,13 +61,27 @@ export default async function EvaluatorTimesheetsPage() {
         school: true,
       },
     }),
+    prisma.schoolExpense.findMany({
+      where: { evaluatorId: user.id },
+      orderBy: { expenseDate: "desc" },
+      include: {
+        school: {
+          select: {
+            id: true,
+            name: true,
+            district: true,
+            pettyCashAmount: true,
+          },
+        },
+      },
+    }),
     prisma.user.findUnique({
       where: { id: user.id },
       select: { shebaNumber: true },
     }),
   ]);
 
-  // محاسبات مجموع ساعات
+  // محاسبات مجموع ساعات کاری
   const totalMinutesSelf = logs
     .filter((l) => l.workerType === "EVALUATOR")
     .reduce((acc, curr) => acc + curr.durationMinutes, 0);
@@ -63,6 +93,15 @@ export default async function EvaluatorTimesheetsPage() {
   const totalHoursSelf = (totalMinutesSelf / 60).toFixed(1);
   const totalHoursAssistants = (totalMinutesAssistants / 60).toFixed(1);
   const totalHoursAll = ((totalMinutesSelf + totalMinutesAssistants) / 60).toFixed(1);
+
+  // محاسبات هزینه‌ها و تنخواه
+  const totalExpensesAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const approvedExpensesAmount = expenses
+    .filter((e) => e.status === "APPROVED")
+    .reduce((sum, e) => sum + e.amount, 0);
+  const pendingExpensesAmount = expenses
+    .filter((e) => e.status === "PENDING")
+    .reduce((sum, e) => sum + e.amount, 0);
 
   return (
     <div className="p-4 sm:p-6 md:p-10 space-y-8 max-w-6xl mx-auto">
@@ -76,52 +115,98 @@ export default async function EvaluatorTimesheetsPage() {
             <ArrowRight className="w-3.5 h-3.5" />
             <span>بازگشت به داشبورد ارزیاب</span>
           </Link>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            ثبت و مدیریت ساعات کاری
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/20">
+              <Clock className="w-5 h-5" />
+            </div>
+            <span>ثبت فعالیت‌ها و گزارش تنخواه</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            ثبت زمان‌های صرف‌شده برای ارزیابی‌ها، جلسات مصاحبه و فعالیت‌های کمک‌ارزیاب‌های همکار
+            ثبت زمان‌های صرف‌شده برای فعالیت‌های میدانی و ثبت گزارش هزینه‌ها و فاکتورهای تنخواه ناظر به مدارس
           </p>
         </div>
       </div>
 
-      {/* کارت‌های خلاصه ساعت کارکرد */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1">مجموع ساعات کل (تیم)</p>
-            <h3 className="text-2xl font-black text-slate-900">{totalHoursAll} <span className="text-xs font-normal text-slate-500">ساعت</span></h3>
-            <p className="text-[11px] text-indigo-600 font-medium mt-1">{logs.length} رکورد ثبت‌شده</p>
+      {/* کارت‌های خلاصه آماری ساعت کارکرد و تنخواه */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* کل ساعات کاری */}
+        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-slate-500">مجموع ساعات کل</span>
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <Clock className="w-4 h-4" />
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <Clock className="w-6 h-6" />
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              {totalHoursAll}
+            </span>
+            <span className="text-xs font-bold text-slate-500">ساعت</span>
           </div>
+          <span className="text-[11px] text-indigo-600 font-medium mt-1 block">
+            {totalHoursSelf} س خودم + {totalHoursAssistants} س همکاران
+          </span>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1">ساعات کاری شخص ارزیاب</p>
-            <h3 className="text-2xl font-black text-slate-900">{totalHoursSelf} <span className="text-xs font-normal text-slate-500">ساعت</span></h3>
-            <p className="text-[11px] text-emerald-600 font-medium mt-1">مصاحبه و سنجش معلمان</p>
+        {/* کل هزینه‌های ثبت‌شده */}
+        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-slate-500">کل مخارج ثبت‌شده</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Receipt className="w-4 h-4" />
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <UserCheck className="w-6 h-6" />
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              {formatNumberFa(totalExpensesAmount)}
+            </span>
+            <span className="text-xs font-bold text-slate-500">تومان</span>
           </div>
+          <span className="text-[11px] text-slate-400 mt-1 block">
+            {expenses.length} فاکتور ناظر به مدارس
+          </span>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1">ساعات کاری کمک‌ارزیاب‌ها</p>
-            <h3 className="text-2xl font-black text-slate-900">{totalHoursAssistants} <span className="text-xs font-normal text-slate-500">ساعت</span></h3>
-            <p className="text-[11px] text-sky-600 font-medium mt-1">{assistants.length} کمک‌ارزیاب متصل</p>
+        {/* مخارج تاییدشده توسط مدیر */}
+        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-slate-500">مخارج تاییدشده</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
-            <Users className="w-6 h-6" />
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">
+              {formatNumberFa(approvedExpensesAmount)}
+            </span>
+            <span className="text-xs font-bold text-emerald-600">تومان</span>
           </div>
+          <span className="text-[11px] text-emerald-600 font-medium mt-1 block">
+            {expenses.filter((e) => e.status === "APPROVED").length} مورد تایید نهایی
+          </span>
+        </div>
+
+        {/* مخارج در انتظار تایید مدیر */}
+        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-slate-500">در انتظار تایید</span>
+            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+              <Coins className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xl sm:text-2xl font-black text-amber-600 tracking-tight">
+              {formatNumberFa(pendingExpensesAmount)}
+            </span>
+            <span className="text-xs font-bold text-amber-600">تومان</span>
+          </div>
+          <span className="text-[11px] text-amber-600 font-medium mt-1 block">
+            {expenses.filter((e) => e.status === "PENDING").length} فاکتور در دست بررسی
+          </span>
         </div>
       </div>
 
-      {/* بخش مدیریت و ویرایش اطلاعات شبا */}
+      {/* بخش مدیریت و ویرایش اطلاعات شبا ارزیاب و همکاران */}
       <EvaluatorShebaManager
         evaluatorId={user.id}
         evaluatorName={user.fullName}
@@ -132,95 +217,30 @@ export default async function EvaluatorTimesheetsPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* فرم ثبت کارکرد جدید */}
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 space-y-6">
+        {/* فرم ثبت فعالیت و هزینه جدید */}
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-5">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
             <PlusCircle className="w-5 h-5 text-indigo-600" />
-            <h2 className="font-bold text-base text-slate-900">ثبت ساعت کاری جدید</h2>
+            <div>
+              <h2 className="font-bold text-base text-slate-900">ثبت فعالیت یا هزینه تنخواه</h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">ثبت زمان یا مخارج ناظر به مدرسه</p>
+            </div>
           </div>
 
-          <TimesheetFormClient assistants={assistants} schools={schools} />
+          <TimesheetFormClient
+            assistants={assistants}
+            schools={schools}
+            initialSchoolId={schoolId || ""}
+            initialTab={initialTab}
+          />
         </div>
 
-        {/* لیست سوابق ثبت‌شده */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="font-bold text-base text-slate-900">سوابق کارکرد ثبت‌شده</h2>
-            <span className="text-xs text-slate-500">{logs.length} مورد</span>
-          </div>
-
-          {logs.length === 0 ? (
-            <div className="py-16 text-center text-sm text-slate-400">
-              هنوز ساعت کاری ثبت نشده است. با استفاده از فرم مقابل کارکرد خود یا کمک‌ارزیاب را ثبت کنید.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs sm:text-sm">
-                <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 text-xs font-semibold">
-                  <tr>
-                    <th className="py-3 px-5">تاریخ</th>
-                    <th className="py-3 px-5">نیروی کار</th>
-                    <th className="py-3 px-5 text-center">مدت زمان</th>
-                    <th className="py-3 px-5">شرح فعالیت / مدرسه</th>
-                    <th className="py-3 px-5 text-left">عملیات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {logs.map((log) => {
-                    const hours = Math.floor(log.durationMinutes / 60);
-                    const mins = log.durationMinutes % 60;
-                    const dateFormatted = new Date(log.date).toLocaleDateString("fa-IR");
-
-                    return (
-                      <tr key={log.id} className="hover:bg-slate-50/60 transition">
-                        <td className="py-3.5 px-5 font-medium text-slate-600 whitespace-nowrap">
-                          {dateFormatted}
-                        </td>
-                        <td className="py-3.5 px-5">
-                          {log.workerType === "EVALUATOR" ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">
-                              <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
-                              خودم (ارزیاب)
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700">
-                              <span className="w-1.5 h-1.5 rounded-full bg-sky-600"></span>
-                              کمک‌ارزیاب: {log.assistantEvaluator?.fullName || "نامشخص"}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-5 text-center font-bold text-slate-800 whitespace-nowrap">
-                          {hours > 0 && `${hours} ساعت `}
-                          {mins > 0 && `${mins} دقیقه`}
-                          {hours === 0 && mins === 0 && "۰ دقیقه"}
-                        </td>
-                        <td className="py-3.5 px-5 text-slate-600">
-                          <p className="line-clamp-2">{log.description || "—"}</p>
-                          {log.school && (
-                            <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 mt-0.5">
-                              <School className="w-3 h-3" />
-                              {log.school.name}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-5 text-left">
-                          <form action={deleteTimesheetAction.bind(null, log.id)}>
-                            <button
-                              type="submit"
-                              className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition cursor-pointer"
-                              title="حذف رکورد"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </form>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+        {/* لیست سوابق ثبت‌شده (ساعت کارکرد و هزینه‌ها) */}
+        <div className="lg:col-span-2">
+          <EvaluatorRecordsClient
+            logs={logs as unknown as TimesheetLogItem[]}
+            expenses={expenses as unknown as ExpenseRecordItem[]}
+          />
         </div>
       </div>
     </div>

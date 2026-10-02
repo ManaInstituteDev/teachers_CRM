@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Compass,
   UserCheck,
+  Receipt,
 } from "lucide-react";
 import SchoolExpenseModal from "@/components/evaluator/SchoolExpenseModal";
 
@@ -164,6 +165,15 @@ export default async function EvaluatorSchoolDetailPage({
               initialPettyCashPaid={school.pettyCashPaid}
               buttonClassName="py-2.5 px-4 rounded-2xl text-xs sm:text-sm shadow-sm"
             />
+
+            <Link
+              href={`/evaluator/timesheets?schoolId=${school.id}&tab=expense`}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs sm:text-sm font-bold transition shadow-sm cursor-pointer"
+              title="ثبت فعالیت و تنخواه این مدرسه در پنل ثبت فعالیت"
+            >
+              <Receipt className="w-4 h-4 text-amber-600" />
+              <span>ثبت فعالیت و تنخواه</span>
+            </Link>
 
             <Link
               href={`/evaluator/evaluate?schoolId=${school.id}`}

@@ -38,25 +38,72 @@ export async function logTimesheetAction(prevState: any, formData: FormData) {
 
   const logDate = dateStr ? new Date(dateStr) : new Date();
 
+  // بررسی درخواست ثبت همزمان هزینه تنخواه
+  const includeExpense = formData.get("includeExpense") === "true";
+  const expenseTitle = (formData.get("expenseTitle") as string)?.trim();
+  const expenseAmount = Math.round(Number(formData.get("expenseAmount") || 0));
+  const expenseCategory = (formData.get("expenseCategory") as string)?.trim() || null;
+  const expenseDescription = (formData.get("expenseDescription") as string)?.trim() || null;
+
+  if (includeExpense) {
+    if (!schoolId) {
+      return { error: "برای ثبت گزارش هزینه و تنخواه، انتخاب مدرسه الزامی است." };
+    }
+    if (!expenseTitle) {
+      return { error: "لطفاً عنوان هزینه تنخواه (مانند کرایه رفت‌وآمد، پذیرایی، پرینت) را وارد کنید." };
+    }
+    if (isNaN(expenseAmount) || expenseAmount <= 0) {
+      return { error: "مبلغ هزینه تنخواه باید عددی بیشتر از صفر (به تومان) باشد." };
+    }
+  }
+
   try {
-    await prisma.timesheetLog.create({
-      data: {
-        evaluatorId: targetEvaluatorId,
-        workerType,
-        assistantEvaluatorId: workerType === "ASSISTANT_EVALUATOR" ? assistantEvaluatorId : null,
-        durationMinutes: totalMinutes,
-        description: description ? description.trim() : null,
-        schoolId: schoolId || null,
-        date: logDate,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.timesheetLog.create({
+        data: {
+          evaluatorId: targetEvaluatorId,
+          workerType,
+          assistantEvaluatorId: workerType === "ASSISTANT_EVALUATOR" ? assistantEvaluatorId : null,
+          durationMinutes: totalMinutes,
+          description: description ? description.trim() : null,
+          schoolId: schoolId || null,
+          date: logDate,
+        },
+      });
+
+      if (includeExpense && schoolId && expenseAmount > 0) {
+        await tx.schoolExpense.create({
+          data: {
+            title: expenseTitle,
+            amount: expenseAmount,
+            category: expenseCategory,
+            description: expenseDescription || (description ? description.trim() : null),
+            expenseDate: logDate,
+            schoolId,
+            evaluatorId: targetEvaluatorId,
+            status: "PENDING",
+          },
+        });
+      }
     });
 
     revalidatePath("/evaluator/timesheets");
     revalidatePath("/admin/timesheets");
     revalidatePath("/admin/analytics");
-    return { success: true, message: "ساعت کاری با موفقیت در سامانه ثبت شد." };
+    revalidatePath("/admin/expenses");
+    if (schoolId) {
+      revalidatePath(`/admin/schools/${schoolId}`);
+      revalidatePath(`/evaluator/schools/${schoolId}`);
+    }
+
+    return {
+      success: true,
+      message: includeExpense
+        ? "ساعت فعالیت و هزینه تنخواه با موفقیت در سامانه ثبت شدند."
+        : "ساعت کاری با موفقیت در سامانه ثبت شد.",
+    };
   } catch (err: any) {
-    return { error: "خطا در ثبت ساعت کاری: " + (err.message || "خطای ناشناخته") };
+    return { error: "خطا در ثبت ساعت کاری یا هزینه: " + (err.message || "خطای ناشناخته") };
   }
 }
 
