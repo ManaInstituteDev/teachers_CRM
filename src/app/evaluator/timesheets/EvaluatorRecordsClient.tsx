@@ -229,7 +229,7 @@ export default function EvaluatorRecordsClient({
         <div>
           {expenses.length === 0 ? (
             <div className="py-16 text-center text-sm text-slate-400">
-              هنوز هیچ گزارش هزینه یا تنخواهی ثبت نشده است. از تب «ثبت هزینه و تنخواه» در فرم مقابل فاکتورهای خود را ناظر به مدرسه ثبت کنید.
+              هنوز هیچ گزارش هزینه یا تنخواهی ثبت نشده است. از فرم یکپارچه مقابل فاکتورهای خود را ناظر به مدرسه ثبت کنید.
             </div>
           ) : (
             <div className="overflow-x-auto">

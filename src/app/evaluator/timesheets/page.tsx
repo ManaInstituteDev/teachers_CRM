@@ -26,15 +26,14 @@ export const dynamic = "force-dynamic";
 export default async function EvaluatorTimesheetsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ schoolId?: string; tab?: string }>;
+  searchParams: Promise<{ schoolId?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
   }
 
-  const { schoolId, tab } = await searchParams;
-  const initialTab = tab === "expense" ? "expense" : "timesheet";
+  const { schoolId } = await searchParams;
 
   // دریافت اطلاعات همزمان: کمک‌ارزیابان، مدارس، لاگ‌های کارکرد، فاکتورهای تنخواه و شماره شبا
   const [assistants, schools, logs, expenses, userDb] = await Promise.all([
@@ -223,8 +222,8 @@ export default async function EvaluatorTimesheetsPage({
           <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
             <PlusCircle className="w-5 h-5 text-indigo-600" />
             <div>
-              <h2 className="font-bold text-base text-slate-900">ثبت فعالیت یا هزینه تنخواه</h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">ثبت زمان یا مخارج ناظر به مدرسه</p>
+              <h2 className="font-bold text-base text-slate-900">ثبت فعالیت و هزینه تنخواه</h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">ثبت یکپارچه زمان و مخارج ناظر به مدرسه</p>
             </div>
           </div>
 
@@ -232,7 +231,6 @@ export default async function EvaluatorTimesheetsPage({
             assistants={assistants}
             schools={schools}
             initialSchoolId={schoolId || ""}
-            initialTab={initialTab}
           />
         </div>
 

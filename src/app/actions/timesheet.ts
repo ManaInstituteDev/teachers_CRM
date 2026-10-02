@@ -20,10 +20,6 @@ export async function logTimesheetAction(prevState: any, formData: FormData) {
   const schoolId = formData.get("schoolId") as string;
   const dateStr = formData.get("date") as string;
 
-  if (totalMinutes <= 0) {
-    return { error: "مدت زمان کارکرد باید بیشتر از صفر باشد." };
-  }
-
   if (workerType === "ASSISTANT_EVALUATOR" && !assistantEvaluatorId) {
     return { error: "لطفاً کمک‌ارزیاب مربوطه را انتخاب کنید." };
   }
@@ -49,16 +45,24 @@ export async function logTimesheetAction(prevState: any, formData: FormData) {
     }
   }
 
-  // بررسی درخواست ثبت همزمان هزینه تنخواه
-  const includeExpense = formData.get("includeExpense") === "true";
+  // بررسی اطلاعات هزینه تنخواه (در صورت درج توسط کاربر)
   const expenseTitle = (formData.get("expenseTitle") as string)?.trim();
-  const expenseAmount = Math.round(Number(formData.get("expenseAmount") || 0));
+  const expenseAmountRaw = (formData.get("expenseAmount") as string) || "";
+  const cleanedAmountStr = expenseAmountRaw.replace(/[^\d]/g, "");
+  const expenseAmount = cleanedAmountStr ? parseInt(cleanedAmountStr, 10) : 0;
   const expenseCategory = (formData.get("expenseCategory") as string)?.trim() || null;
   const expenseDescription = (formData.get("expenseDescription") as string)?.trim() || null;
 
-  if (includeExpense) {
+  const hasExpense = expenseAmount > 0 || Boolean(expenseTitle);
+  const hasHours = totalMinutes > 0;
+
+  if (!hasHours && !hasExpense) {
+    return { error: "لطفاً مدت زمان کارکرد یا مبلغ هزینه تنخواه را وارد کنید." };
+  }
+
+  if (hasExpense) {
     if (!schoolId) {
-      return { error: "برای ثبت گزارش هزینه و تنخواه، انتخاب مدرسه الزامی است." };
+      return { error: "برای ثبت هزینه و تنخواه، انتخاب مدرسه محل فعالیت الزامی است." };
     }
     if (!expenseTitle) {
       return { error: "لطفاً عنوان هزینه تنخواه (مانند کرایه رفت‌وآمد، پذیرایی، پرینت) را وارد کنید." };
@@ -70,19 +74,21 @@ export async function logTimesheetAction(prevState: any, formData: FormData) {
 
   try {
     await prisma.$transaction(async (tx) => {
-      await tx.timesheetLog.create({
-        data: {
-          evaluatorId: targetEvaluatorId,
-          workerType,
-          assistantEvaluatorId: workerType === "ASSISTANT_EVALUATOR" ? assistantEvaluatorId : null,
-          durationMinutes: totalMinutes,
-          description: description ? description.trim() : null,
-          schoolId: schoolId || null,
-          date: logDate,
-        },
-      });
+      if (hasHours) {
+        await tx.timesheetLog.create({
+          data: {
+            evaluatorId: targetEvaluatorId,
+            workerType,
+            assistantEvaluatorId: workerType === "ASSISTANT_EVALUATOR" ? assistantEvaluatorId : null,
+            durationMinutes: totalMinutes,
+            description: description ? description.trim() : null,
+            schoolId: schoolId || null,
+            date: logDate,
+          },
+        });
+      }
 
-      if (includeExpense && schoolId && expenseAmount > 0) {
+      if (hasExpense && schoolId && expenseAmount > 0) {
         await tx.schoolExpense.create({
           data: {
             title: expenseTitle,
@@ -107,11 +113,16 @@ export async function logTimesheetAction(prevState: any, formData: FormData) {
       revalidatePath(`/evaluator/schools/${schoolId}`);
     }
 
+    let message = "گزارش فعالیت با موفقیت در سامانه ثبت شد.";
+    if (hasHours && hasExpense) {
+      message = "ساعت فعالیت و هزینه تنخواه با موفقیت در سامانه ثبت شدند.";
+    } else if (hasExpense) {
+      message = `فاکتور هزینه تنخواه به مبلغ ${expenseAmount.toLocaleString("fa-IR")} تومان با موفقیت ثبت شد.`;
+    }
+
     return {
       success: true,
-      message: includeExpense
-        ? "ساعت فعالیت و هزینه تنخواه با موفقیت در سامانه ثبت شدند."
-        : "ساعت کاری با موفقیت در سامانه ثبت شد.",
+      message,
     };
   } catch (err: any) {
     return { error: "خطا در ثبت ساعت کاری یا هزینه: " + (err.message || "خطای ناشناخته") };
