@@ -15,9 +15,7 @@ import {
   CheckCircle2,
   Compass,
   UserCheck,
-  Receipt,
 } from "lucide-react";
-import SchoolExpenseModal from "@/components/evaluator/SchoolExpenseModal";
 
 export const dynamic = "force-dynamic";
 
@@ -62,13 +60,6 @@ export default async function EvaluatorSchoolsPage({
       },
       _count: {
         select: { teachers: true },
-      },
-      expenses: {
-        select: {
-          id: true,
-          amount: true,
-          status: true,
-        },
       },
     },
   });
@@ -295,26 +286,6 @@ export default async function EvaluatorSchoolsPage({
                       <span>
                         {school.humanitiesAttitude || school.approachEvidence ? "ویرایش ارزیابی مدرسه" : "ثبت ارزیابی مدرسه"}
                       </span>
-                    </Link>
-
-                    {/* دکمه ثبت و گزارش تنخواه و مخارج این مدرسه */}
-                    <SchoolExpenseModal
-                      schoolId={school.id}
-                      schoolName={school.name}
-                      schoolCode={school.code}
-                      initialExpensesCount={school.expenses.length}
-                      initialTotalExpenses={school.expenses.reduce((sum, e) => sum + e.amount, 0)}
-                      initialPettyCashAmount={school.pettyCashAmount}
-                      initialPettyCashPaid={school.pettyCashPaid}
-                    />
-
-                    <Link
-                      href={`/evaluator/timesheets?schoolId=${school.id}&tab=expense`}
-                      className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 px-2.5 py-2 rounded-xl transition"
-                      title="ثبت فعالیت و تنخواه این مدرسه در پنل ثبت فعالیت"
-                    >
-                      <Receipt className="w-3.5 h-3.5 text-amber-600" />
-                      <span>ثبت فعالیت و تنخواه</span>
                     </Link>
                   </div>
 
