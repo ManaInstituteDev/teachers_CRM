@@ -47,6 +47,10 @@ export async function addSchoolExpenseAction({
     return { error: "مدرسه مورد نظر یافت نشد." };
   }
 
+  if (user.role !== "ADMIN" && school.assignedEvaluatorId !== user.id) {
+    return { error: "این مدرسه به شما تخصیص داده نشده است." };
+  }
+
   try {
     let date = new Date();
     if (expenseDate) {

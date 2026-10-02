@@ -43,6 +43,7 @@ export default async function EvaluatorTimesheetsPage({
       orderBy: { fullName: "asc" },
     }),
     prisma.school.findMany({
+      where: { assignedEvaluatorId: user.id },
       select: {
         id: true,
         name: true,

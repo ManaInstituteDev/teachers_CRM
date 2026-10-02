@@ -283,21 +283,27 @@ export default function TimesheetFormClient({
           {/* مدرسه مرتبط */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
-              <span>مدرسه محل فعالیت (منتسب به مدرسه)</span>
+              <span>مدرسه محل فعالیت (از مدارس تخصیص‌یافته به شما)</span>
               {selectedSchoolForTimesheet?.pettyCashAmount ? (
                 <span className="text-[10px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
                   تنخواه مصوب: {formatNumberFa(selectedSchoolForTimesheet.pettyCashAmount)} تومان
                 </span>
               ) : null}
             </label>
-            <SearchableSchoolSelect
-              schools={schools}
-              name="schoolId"
-              defaultValue={timesheetSchoolId}
-              onChange={(id) => setTimesheetSchoolId(id)}
-              noneLabel="-- انتخاب مدرسه محل فعالیت --"
-              placeholder="جستجوی نام یا منطقه مدرسه..."
-            />
+            {schools.length === 0 ? (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                هنوز مدرسه‌ای توسط مدیریت به کارتابل شما تخصیص داده نشده است.
+              </div>
+            ) : (
+              <SearchableSchoolSelect
+                schools={schools}
+                name="schoolId"
+                defaultValue={timesheetSchoolId}
+                onChange={(id) => setTimesheetSchoolId(id)}
+                noneLabel="-- بدون انتساب به مدرسه / فعالیت عمومی --"
+                placeholder={`جستجو در مدارس تخصیص‌یافته (${schools.length} مدرسه)...`}
+              />
+            )}
           </div>
 
           {/* شرح فعالیت */}
@@ -458,7 +464,7 @@ export default function TimesheetFormClient({
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
               <span>
-                مدرسه محل فعالیت و هزینه <span className="text-rose-500">*</span>
+                مدرسه محل فعالیت و هزینه (از مدارس تخصیص‌یافته به شما) <span className="text-rose-500">*</span>
               </span>
               {selectedSchoolForExpense?.pettyCashAmount ? (
                 <span className="text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-lg border border-amber-200">
@@ -467,14 +473,20 @@ export default function TimesheetFormClient({
                 </span>
               ) : null}
             </label>
-            <SearchableSchoolSelect
-              schools={schools}
-              defaultValue={expenseSchoolId}
-              onChange={(id) => setExpenseSchoolId(id)}
-              required={true}
-              noneLabel="-- انتخاب مدرسه محل انجام هزینه --"
-              placeholder="جستجوی مدرسه مورد نظر..."
-            />
+            {schools.length === 0 ? (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                هنوز مدرسه‌ای توسط مدیریت به کارتابل شما تخصیص داده نشده است.
+              </div>
+            ) : (
+              <SearchableSchoolSelect
+                schools={schools}
+                defaultValue={expenseSchoolId}
+                onChange={(id) => setExpenseSchoolId(id)}
+                required={true}
+                noneLabel="-- انتخاب مدرسه محل انجام هزینه --"
+                placeholder={`جستجو در مدارس تخصیص‌یافته (${schools.length} مدرسه)...`}
+              />
+            )}
           </div>
 
           {/* تاریخ انجام هزینه */}

@@ -38,6 +38,17 @@ export async function logTimesheetAction(prevState: any, formData: FormData) {
 
   const logDate = dateStr ? new Date(dateStr) : new Date();
 
+  // بررسی انتساب مدرسه به ارزیاب
+  if (user.role !== "ADMIN" && schoolId) {
+    const school = await prisma.school.findUnique({
+      where: { id: schoolId },
+      select: { id: true, assignedEvaluatorId: true },
+    });
+    if (!school || school.assignedEvaluatorId !== user.id) {
+      return { error: "این مدرسه به شما تخصیص داده نشده است." };
+    }
+  }
+
   // بررسی درخواست ثبت همزمان هزینه تنخواه
   const includeExpense = formData.get("includeExpense") === "true";
   const expenseTitle = (formData.get("expenseTitle") as string)?.trim();
