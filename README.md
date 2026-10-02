@@ -1,38 +1,250 @@
-CRM for teachers
+# 🎓 سامانه جامع رصد و ارزیابی شایستگی‌های شبکه‌ای معلمان و مدیریت مدارس
+### Teachers CRM & Evaluator Platform — نسخه ۱.۰.۰ (Release v1.0.0)
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+سامانه **Teachers CRM** یک پلتفرم پیشرفته، یکپارچه و تحت وب جهت رصد، سنجش شایستگی‌های چندمحوره کادر آموزشی مدارس، مدیریت فعالیت‌های میدانی ارزیابان و پایش مالی تنخواه و هزینه‌های پروژه‌ای مدارس است. این سامانه با جدیدترین استانداردهای مهندسی نرم‌افزار، مبتنی بر معماری **Next.js 16 (App Router)**، **React 19** و **Prisma ORM 7** پیاده‌سازی شده است.
 
-## Getting Started
+---
 
-First, run the development server:
+## 📑 فهرست مطالب
+1. [معماری و پشته فناوری (Tech Stack)](#-معماری-و-پشته-فناوری-tech-stack)
+2. [قابلیت‌های کلیدی سیستم](#-قابلیت‌های-کلیدی-سیستم)
+   - [پنل مدیریت ارشد (Admin Portal)](#۱-پنل-مدیریت-ارشد-admin-portal)
+   - [پنل اختصاصی ارزیاب (Evaluator Portal)](#۲-پنل-اختصاصی-ارزیاب-evaluator-portal)
+   - [سیستم هوشمند تجمیع تنخواه و مخارج (Petty Cash Engine)](#۳-سیستم-هوشمند-تجمیع-تنخواه-و-مخارج-petty-cash-engine)
+3. [ساختار پروژه (Directory Structure)](#-ساختار-پروژه-directory-structure)
+4. [پیش‌نیازها و راه‌اندازی محلی (Getting Started)](#-پیش‌نیازها-و-راه‌اندازی-محلی-getting-started)
+5. [متغیرهای محیطی (Environment Variables)](#-متغیرهای-محیطی-environment-variables)
+6. [اسکریپت‌های پایگاه داده و Seed](#-اسکریپت‌های-پایگاه-داده-و-seed)
+7. [راهنمای دیپلوی و استقرار پروداکشن (Production Deployment)](#-راهنمای-دیپلوی-و-استقرار-پروداکشن-production-deployment)
+   - [روش اول: استقرار با اسکریپت خودکار deploy.sh و PM2 (پیشنهادی)](#روش-اول-استقرار-با-اسکریپت-خودکار-deploysh-و-pm2-پیشنهادی)
+   - [روش دوم: استقرار مبتنی بر Docker Container](#روش-دوم-استقرار-مبتنی-بر-docker-container)
+8. [سیاست‌های امنیتی و کنترل دسترسی (RBAC)](#-سیاست‌های-امنیتی-و-کنترل-دسترسی-rbac)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 🛠 معماری و پشته فناوری (Tech Stack)
+
+| لایه | فناوری / ابزار | توضیحات |
+| :--- | :--- | :--- |
+| **Framework** | Next.js 16.3.5 (Turbopack) | فول‌استک، App Router، Server Actions و Standalone Output |
+| **UI Library** | React 19.2.8 | هوک‌های مدرن `useActionState`، `useTransition` |
+| **Styling** | Tailwind CSS v4 & PostCSS | طراحی ریسپانسیو، پالت‌های HSL اختصاصی و متریال لوکس |
+| **Icons** | Lucide React | آیکون‌های وکتوری مدرن و سبک |
+| **ORM** | Prisma ORM 7.10.0 | نسل جدید با پشتیبانی از SQL Driver Adapters |
+| **Database** | PostgreSQL | دیتابیس رابطه‌ای با ایندکس‌گذاری بهینه و کلیدهای CUID |
+| **Adapter** | `@prisma/adapter-pg` & `pg` | ارتباط بهینه Connection Pooling با دیتابیس Postgres |
+| **Validation** | Zod 4 & React Hook Form | اعتبارسنجی دقیق داده‌های ورودی کلاینت و سرور |
+| **Process Manager** | PM2 | مانیتورینگ، ری‌استارت خودکار و مدیریت فرآیندها در لینوکس |
+
+---
+
+## 🌟 قابلیت‌های کلیدی سیستم
+
+### ۱. پنل مدیریت ارشد (Admin Portal)
+* **داشبورد تحلیلی و آمار کلان:** نمایش شاخص‌های عملکردی کلیدی (معلمان ارزیابی‌شده، مدارس تحت پوشش، ساعات کارکرد ثبت‌شده، تراز مالی تنخواه‌ها).
+* **شناسنامه جامع مدارس:**
+  - ثبت و ویرایش مشخصات اداری، منطقه آموزش و پرورش، تلفن، نام مدیر و نشانی.
+  - ثبت معرف‌های مدرسه به همراه شماره تماس جهت هماهنگی ورود ارزیاب.
+  - سنجش رویکرد غالب مدرسه (تربیتی-فرهنگی، نمره‌محور، مهارت‌محور، مسئله‌محور و...).
+  - رصد ظرفیت‌های ۱۰‌گانه علوم انسانی و ارزیابی سطح آمادگی سازمانی مدرسه.
+* **ارزیابی چندمحوره شایستگی معلمان:**
+  - ثبت نمرات شاخص‌های ۵‌گانه (شناختی، دانشی، مهارتی، نگرشی، عملکردی).
+  - تحلیل خودکار وضعیت همکاری (محور، مستعد ارتباط رشدی، ارتباط موردی، نامناسب).
+  - خروجی بصری نمودارهای تحلیلی و رادار شایستگی.
+* **مدیریت ارزیابان و کمک‌ارزیابان:**
+  - تعریف ارزیابان رسمی و تخصیص مدارس به کارتابل آن‌ها.
+  - اتصال کمک‌ارزیاب‌های میدانی به ارزیاب ارشد.
+  - ثبت و پایش شماره شبا بانکی معتبر جهت تسویه حساب‌های مالی.
+* **پایش کارکرد و تایم‌شیت‌ها (`/admin/timesheets`):**
+  - بررسی، تایید، تعدیل (Revision) یا رد لاگ‌های ساعتی ارزیابان و دستیاران.
+
+### ۲. پنل اختصاصی ارزیاب (Evaluator Portal)
+* **میز کار هوشمند ارزیاب:** دسترسی مستقیم به مدارس کارتابل و آمار ارزیابی‌های ثبت‌شده.
+* **مدارس تخصیص‌یافته (`/evaluator/schools`):**
+  - مشاهده لیست مدارسی که منحصراً توسط مدیریت به همان ارزیاب اختصاص داده شده‌اند.
+  - ثبت مشخصات معلمان و کادر آموزشی جدید برای هر مدرسه.
+  - ارزیابی تخصصی ۵ محوره معلمان و ثبت مشاهدات رفتاری.
+* **پنل یکپارچه ثبت فعالیت و تنخواه (`/evaluator/timesheets`):**
+  - **تب ۱: ثبت ساعت کارکرد:** ثبت مدت زمان، انتخاب نیروی کار (خودم یا کمک‌ارزیاب)، تاریخ، شرح فعالیت با امکان انتخاب منحصراً مدارس تخصیص‌یافته.
+  - **ثبت همزمان هزینه تنخواه:** چک‌باکس اختیاری در فرم ثبت ساعت برای ثبت سریع هزینه اسنپ، ناهار یا پرینت همان روز کاری بدون نیاز به پر کردن فرم مجزا.
+  - **تب ۲: ثبت هزینه و تنخواه (ناظر به مدرسه):** فرم مستقل ثبت فاکتورهای تنخواه با انتخاب مدرسه محل مأموریت، پیش‌فرض‌های عناوین سریع (کرایه اسنپ، پذیرایی، پرینت فرم‌ها)، دسته‌بندی و **تبدیل خودکار مبالغ به حروف فارسی**.
+  - **بخش سوابق دوگانه:** تب‌بندی سوابق ساعت کاری و سوابق هزینه‌ها با برچسب وضعیت تایید (تایید شده سبز، در انتظار بررسی زرد، رد شده با ذکر علت رد مدیر قرمز).
+  - **مدیریت شماره شبا:** مشاهده و ثبت شماره شبای ارزیاب و دستیاران جهت واریز حق‌الزحمه و تنخواه.
+
+### ۳. سیستم هوشمند تجمیع تنخواه و مخارج (Petty Cash Engine)
+* **نمای تجمیعی حول مدارس (School-Consolidated Overview):**
+  - تجمیع خودکار فاکتورهای پراکنده هر مدرسه در یک کارت مالی یکپارچه.
+  - **مجموع هزینه‌های تاییدشده حول مدرسه:** محاسبه آنی مجموع مبالغ تاییدشده بدون نیاز به ماشین‌حساب.
+  - **سقف تنخواه مصوب اولیه:** امکان ویرایش مستقیم سقف تنخواه درجا توسط مدیر.
+  - **وضعیت پرداخت تنخواه اولیه:** تیک واریز شد/نشد به همراه تاریخ واریز.
+  - **ماشین‌حساب هوشمند مانده تنخواه:**
+    - اگر مانده مثبت باشد: `مانده تنخواه نزد ارزیاب: ... تومان (درصد مصرف)`
+    - اگر مخارج بیشتر از تنخواه باشد: `کسری تنخواه / طلب ارزیاب: ... تومان` (هشدار لزوم تسویه مازاد)
+* **آکاردئون مشاهده ریز فاکتورها:** امکان باز کردن و مشاهده فاکتورهای هر مدرسه درجا، با امکان تایید و رد تک‌تک موارد.
+* **تایید یکجای فاکتورهای در انتظار:** دکمه عملیاتی برای تایید آنی کلیه فاکتورهای منتظر بررسی یک مدرسه در یک کلیک.
+* **خروجی اکسل (CSV):** دانلود گزارش تجمیعی مدارس و خروجی ریز فاکتورها با فرمت استاندارد فارسی.
+
+---
+
+## 📁 ساختار پروژه (Directory Structure)
+
+```
+teachers_crm/
+├── prisma/
+│   ├── schema.prisma              # مدل‌های دیتابیس (School, User, Teacher, SchoolExpense, TimesheetLog, ...)
+│   └── migrations/                # تاریخچه مایگریشن‌های دیتابیس
+├── scripts/
+│   ├── clean_db.cjs               # اسکریپت پاکسازی داده‌های تستی
+│   ├── copy_standalone_assets.cjs # کپی فایل‌های پابلیک و استاتیک برای بیلد Standalone
+│   ├── seed_admin.cjs             # ایجاد کاربر ادمین پیش‌فرض
+│   └── seed_schools_and_referrers.cjs # سید اولیه مدارس و معرف‌ها
+├── src/
+│   ├── app/
+│   │   ├── actions/               # Server Actions (auth, expense, timesheet, school, teacher)
+│   │   ├── admin/                 # صفحات پنل ادمین (schools, teachers, timesheets, expenses, evaluators)
+│   │   ├── evaluator/             # صفحات پنل ارزیاب (schools, evaluate, timesheets, my-evaluations)
+│   │   ├── login/                 # صفحه ورود به سیستم
+│   │   ├── layout.tsx             # روت لایه سراسری
+│   │   └── page.tsx               # صفحه اصلی و هدایت به پنل مربوطه
+│   ├── components/
+│   │   ├── admin/                 # کامپوننت‌های پنل مدیریت (AdminExpensesClient, CopyableSheba, ...)
+│   │   ├── evaluator/             # کامپوننت‌های ارزیاب (EvaluatorNavbar, EvaluatorRecordsClient, ...)
+│   │   └── ...                    # کامپوننت‌های مشترک (SearchableSchoolSelect, ...)
+│   └── lib/
+│       ├── auth.ts                # سشن و توکن احراز هویت
+│       ├── prisma.ts              # کلاینت سراسری Prisma با Driver Adapter
+│       └── numberToWords.ts       # تبدیل اعداد به حروف فارسی و فرمت مبالغ تومان
+├── deploy.sh                      # اسکریپت استقرار سریع لینوکس
+├── Dockerfile                     # داکرفایل چندمرحله‌ای بهینه‌شده
+├── docker-compose.yml             # سرویس‌های Postgres و اپلیکیشن
+├── package.json                   # تنظیمات پکیج و اسکریپت‌ها (v1.0.0)
+└── prisma7.config.ts              # کانفیگ درایور آداپتور Prisma 7
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 پیش‌نیازها و راه‌اندازی محلی (Getting Started)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### ۱. پیش‌نیازها
+* **Node.js:** نسخه `20.x` یا بالاتر (LTS پیشنهاد می‌شود)
+* **Package Manager:** `pnpm` (نسخه ۹ پیشنهاد می‌شود: `npm install -g pnpm`)
+* **Database:** PostgreSQL نسخه ۱۴ به بالا
 
-## Learn More
+### ۲. کلون کردن مخزن و نصب وابستگی‌ها
+```bash
+git clone https://github.com/ManaInstituteDev/teachers_CRM.git
+cd teachers_CRM
+pnpm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+### ۳. تنظیم متغیرهای محیطی
+یک فایل `.env` بر اساس `.env.example` در ریشه پروژه ایجاد کنید:
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5432/teachers_crm?schema=public"
+SESSION_SECRET="your-super-secret-random-key-change-it"
+NODE_ENV="development"
+PORT=3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### ۴. همگام‌سازی دیتابیس و اجرای سید اولیه
+```bash
+# اعمال مدل‌ها روی دیتابیس
+pnpm db:push
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# تولید کلاینت پریزما
+pnpm prisma generate
 
-## Deploy on Vercel
+# ایجاد مدیر سیستم و داده‌های پایه مدارس
+pnpm db:seed
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### ۵. اجرای سرور توسعه
+```bash
+pnpm dev
+```
+اکنون سامانه در آدرس `http://localhost:3000` در دسترس است.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🔑 حساب‌های کاربری پیش‌فرض (Default Seed Accounts)
+
+| نقش کاربری | نام کاربری (Username) | رمز عبور (Password) | سطح دسترسی |
+| :--- | :--- | :--- | :--- |
+| **مدیر سامانه (ADMIN)** | `admin` | `admin123` | دسترسی کامل به کلیه بخش‌ها، تایید مالی، تنظیمات |
+| **ارزیاب نمونه (EVALUATOR)** | `evaluator1` | `evaluator123` | ثبت ارزیابی، ثبت ساعت کارکرد و فاکتورهای تنخواه مدارس خود |
+
+*(پس از استقرار نهایی در محیط پروداکشن، حتماً رمز عبور حساب ادمین را تغییر دهید).*
+
+---
+
+## 🚢 راهنمای دیپلوی و استقرار پروداکشن (Production Deployment)
+
+### روش اول: استقرار با اسکریپت خودکار `deploy.sh` و PM2 (پیشنهادی)
+
+پروژه برای اجرای پایدار روی سرور لینوکس (Ubuntu / Debian) با استفاده از خروجی Next.js Standalone و مدیریت پروسه PM2 پیکربندی شده است.
+
+۱. اطمینان از نصب PM2 و pnpm روی سرور:
+```bash
+npm install -g pm2 pnpm
+```
+
+۲. تنظیم دسترسی اجرایی اسکریپت دیپلوی:
+```bash
+chmod +x deploy.sh
+```
+
+۳. اجرای اسکریپت استقرار:
+```bash
+./deploy.sh
+```
+
+**محتوای اسکریپت `deploy.sh` به صورت خودکار مراحل زیر را انجام می‌دهد:**
+1. دریافت آخرین تغییرات گیت (`git pull`)
+2. نصب بهینه وابستگی‌ها (`pnpm install`)
+3. به‌روزرسانی اسکیما در دیتابیس پروداکشن (`pnpm db:push`)
+4. اجرای بیلد نهایی و کپی خودکار استاتیک‌ها (`pnpm build`)
+5. اجرای ری‌استارت در PM2 بر روی فایل سبک `.next/standalone/server.js`
+
+برای مشاهده لاگ‌های زنده سرور:
+```bash
+pm2 logs teachers-crm
+```
+
+---
+
+### روش دوم: استقرار مبتنی بر Docker Container
+
+یک `Dockerfile` چندمرحله‌ای (Multi-stage) سبک مبتنی بر Alpine Linux آماده شده است.
+
+```bash
+# ساخت ایمیج
+docker build -t teachers-crm:1.0.0 .
+
+# اجرای کانتینر
+docker run -d -p 3000:3000 --env-file .env --name teachers-crm-app teachers-crm:1.0.0
+```
+
+یا با استفاده از `docker-compose`:
+```bash
+docker-compose up -d --build
+```
+
+---
+
+## 🔒 سیاست‌های امنیتی و کنترل دسترسی (RBAC)
+
+1. **اعتبارسنجی سمت سرور (Server Actions Security):**
+   - تمامی عملیات حساس مالی و ارزیابی در سمت سرور احراز هویت می‌شوند (`getCurrentUser()`).
+   - ارزیابان **فقط مجاز به مشاهده، ثبت کارکرد و ثبت تنخواه برای مدارس تخصیص‌یافته به خود (`assignedEvaluatorId === user.id`)** هستند؛ هرگونه تلاش برای ثبت دیتا روی مدارس دیگر در لایه سرور مسدود می‌گردد.
+2. **بررسی نقش‌های کاربری (Role Guarding):**
+   - تایید و رد فاکتورها، تعیین سقف تنخواه و تایید ساعات کاری منحصراً در اختیار نقش `ADMIN` است.
+3. **محافظت از اطلاعات پرداخت (IBAN / Sheba Protection):**
+   - شماره شبا مستقیماً در دیتابیس نگهداری شده و با کامپوننت امن `CopyableSheba` نمایش داده می‌شود.
+
+---
+
+## 📝 اطلاعات نسخه و پشتیبانی
+- **نام محصول:** Teachers CRM Platform
+- **نسخه انتشار:** `v1.0.0`
+- **وضعیت релиз:** پایدار و آماده بهره‌برداری پروداکشن (Production-Ready)
+- **مجوز:** اختصاصی / Private (انستیتو معماران نسل آرمانی)
