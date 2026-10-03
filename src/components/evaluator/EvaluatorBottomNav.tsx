@@ -48,14 +48,13 @@ export function EvaluatorBottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center py-1 px-2 rounded-2xl transition-all duration-200 relative ${
-                item.isActive
+              className={`flex flex-col items-center justify-center py-1 px-2 rounded-2xl transition-all duration-200 relative ${item.isActive
                   ? "text-emerald-400 font-bold scale-105"
                   : "text-slate-400 hover:text-slate-200 font-medium"
-              }`}
+                }`}
             >
               <Icon className={`w-5 h-5 mb-1 ${item.isActive ? "stroke-[2.5]" : "stroke-[1.8]"}`} />
-              <span className="text-[10px] tracking-tight truncate max-w-[70px] text-center">{item.label}</span>
+              <span className="text-[10px] tracking-tight truncate max-w-17.5 text-center">{item.label}</span>
               {item.isActive && (
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-0.5 animate-pulse"></span>
               )}
