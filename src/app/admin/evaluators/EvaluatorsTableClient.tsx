@@ -43,7 +43,7 @@ export default function EvaluatorsTableClient({
 اطلاعات ورود شما به سامانه ارزیابی معلمان:
 نام کاربری: ${ev.username}
 رمز عبور: ${ev.password}
-نشانی ورود: http://localhost:3000/login`;
+نشانی ورود: https://safir-mana.ir`;
 
     navigator.clipboard.writeText(text);
     setCopiedId(ev.id);

@@ -46,7 +46,7 @@ export default function NewEvaluatorPage() {
 اطلاعات ورود شما به سامانه ارزیابی معلمان:
 نام کاربری: ${username ? username : "---"}
 رمز عبور: ${password ? password : "---"}
-نشانی ورود: http://localhost:3000/login`;
+نشانی ورود: https://safir-mana.ir`;
 
   const copySms = () => {
     navigator.clipboard.writeText(smsMessage);
