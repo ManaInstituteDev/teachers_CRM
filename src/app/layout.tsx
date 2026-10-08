@@ -11,6 +11,16 @@ const vazirmatn = Vazirmatn({
 export const metadata: Metadata = {
   title: "سامانه ارزیابی و شبکه‌سازی معلمان و مدارس",
   description: "سامانه تخصصی ارزیابی ظرفیت شبکه‌ای معلمان و شناسنامه مدارس در حوزه علوم انسانی",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
+    apple: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

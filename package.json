@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build && node scripts/copy_standalone_assets.cjs",
+    "build": "prisma generate && node scripts/generate_favicon.cjs && next build && node scripts/copy_standalone_assets.cjs",
     "copy:standalone": "node scripts/copy_standalone_assets.cjs",
     "start": "next start",
     "lint": "eslint",
