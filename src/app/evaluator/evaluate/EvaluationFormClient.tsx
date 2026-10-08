@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useMemo } from "react";
+import { useActionState, useState, useMemo, useEffect } from "react";
 import { submitEvaluationAction } from "@/app/actions/evaluation";
 import { calculateAxisQualitative, calculateFinalCollaborationStatus } from "@/lib/scoring";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import {
   ArrowRight,
   ClipboardPenLine,
   User,
+  Users,
   School,
   Clock,
   Award,
@@ -26,23 +27,168 @@ import {
 } from "lucide-react";
 import { SearchableSchoolSelect } from "@/components/SearchableSchoolSelect";
 
-interface SchoolOption {
+export interface TeacherOption {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  nationalCode: string | null;
+  roleTitle: string | null;
+  subject: string;
+  grade: string;
+  teachingYears: number;
+  bio: string | null;
+}
+
+export interface SchoolOption {
   id: string;
   name: string;
   district: string;
+  teachers?: TeacherOption[];
 }
 
 export default function EvaluationFormClient({
   schools,
   initialSchoolId,
+  initialTeacherId,
 }: {
   schools: SchoolOption[];
   initialSchoolId?: string;
+  initialTeacherId?: string;
 }) {
   const [state, formAction, isPending] = useActionState(submitEvaluationAction, null);
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>(initialSchoolId || "");
-  const [selectedRole, setSelectedRole] = useState<string>("معلم");
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>(initialTeacherId || "");
+
   const currentSchool = schools.find((s) => s.id === selectedSchoolId);
+  const currentSchoolTeachers = useMemo(() => currentSchool?.teachers || [], [currentSchool]);
+
+  // فیلدهای اطلاعات فردی کادر مدرسه
+  const [selectedRole, setSelectedRole] = useState<string>("معلم");
+  const [roleTitleCustom, setRoleTitleCustom] = useState<string>("");
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
+  const [nationalCode, setNationalCode] = useState<string>("");
+  const [subject, setSubject] = useState<string>("");
+  const [grade, setGrade] = useState<string>("");
+  const [teachingYears, setTeachingYears] = useState<number>(5);
+  const [schoolNameManual, setSchoolNameManual] = useState<string>("");
+  const [finalNotes, setFinalNotes] = useState<string>("");
+
+  // انتخاب یا تغییر فرد از لیست کادر موجود
+  const selectTeacher = (teacher: TeacherOption | null) => {
+    if (teacher) {
+      setSelectedTeacherId(teacher.id);
+      setFirstName(teacher.firstName || "");
+      setLastName(teacher.lastName || "");
+      setPhone(teacher.phone || "");
+      setNationalCode(teacher.nationalCode || "");
+      const role = teacher.roleTitle || "معلم";
+      const knownRoles = ["معلم", "مشاور", "معاون آموزشی", "معاون پرورشی", "معاون اجرایی", "مدیر مدرسه", "مربی تربیتی"];
+      if (knownRoles.includes(role)) {
+        setSelectedRole(role);
+        setRoleTitleCustom("");
+      } else {
+        setSelectedRole("سایر");
+        setRoleTitleCustom(role);
+      }
+      setSubject(teacher.subject || "");
+      setGrade(teacher.grade || "");
+      setTeachingYears(teacher.teachingYears ?? 5);
+    } else {
+      setSelectedTeacherId("");
+      setFirstName("");
+      setLastName("");
+      setPhone("");
+      setNationalCode("");
+      setSelectedRole("معلم");
+      setRoleTitleCustom("");
+      setSubject("");
+      setGrade("");
+      setTeachingYears(5);
+    }
+  };
+
+  // مقداردهی اولیه در صورت ارسال teacherId
+  useEffect(() => {
+    if (initialTeacherId) {
+      for (const s of schools) {
+        const found = s.teachers?.find((t) => t.id === initialTeacherId);
+        if (found) {
+          selectTeacher(found);
+          break;
+        }
+      }
+    }
+  }, [initialTeacherId, schools]);
+
+  // پیش‌نویس خودکار جهت جلوگیری از پاک شدن اطلاعات طولانی فرم در اثر ریلود یا بسته‌شدن ناخواسته
+  const DRAFT_KEY = `evaluation_draft_${selectedSchoolId || "general"}`;
+  const [hasDraft, setHasDraft] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (!initialTeacherId) {
+        const saved = localStorage.getItem(DRAFT_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && (parsed.firstName || parsed.lastName || parsed.subject)) {
+            setHasDraft(true);
+          }
+        }
+      }
+    } catch {}
+  }, [DRAFT_KEY, initialTeacherId]);
+
+  const restoreDraft = () => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const d = JSON.parse(saved);
+        if (d.firstName) setFirstName(d.firstName);
+        if (d.lastName) setLastName(d.lastName);
+        if (d.phone) setPhone(d.phone);
+        if (d.nationalCode) setNationalCode(d.nationalCode);
+        if (d.selectedRole) setSelectedRole(d.selectedRole);
+        if (d.roleTitleCustom) setRoleTitleCustom(d.roleTitleCustom);
+        if (d.subject) setSubject(d.subject);
+        if (d.grade) setGrade(d.grade);
+        if (d.teachingYears !== undefined) setTeachingYears(d.teachingYears);
+        if (d.schoolNameManual) setSchoolNameManual(d.schoolNameManual);
+        if (d.finalNotes) setFinalNotes(d.finalNotes);
+        if (d.a1_1 !== undefined) setA1_1(d.a1_1);
+        if (d.a1_2 !== undefined) setA1_2(d.a1_2);
+        if (d.a2_1 !== undefined) setA2_1(d.a2_1);
+        if (d.a2_2 !== undefined) setA2_2(d.a2_2);
+        if (d.a2_3 !== undefined) setA2_3(d.a2_3);
+        if (d.a3_1 !== undefined) setA3_1(d.a3_1);
+        if (d.a3_2 !== undefined) setA3_2(d.a3_2);
+        if (d.a3_3 !== undefined) setA3_3(d.a3_3);
+        if (d.a4_1 !== undefined) setA4_1(d.a4_1);
+        if (d.a4_2 !== undefined) setA4_2(d.a4_2);
+        if (d.a4_3 !== undefined) setA4_3(d.a4_3);
+        if (d.a5_1 !== undefined) setA5_1(d.a5_1);
+        if (d.a5_2 !== undefined) setA5_2(d.a5_2);
+        if (d.a5_3 !== undefined) setA5_3(d.a5_3);
+        setHasDraft(false);
+      }
+    } catch {}
+  };
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+      setHasDraft(false);
+    } catch {}
+  };
+
+  // اسکرول نرم به بالای صفحه در صورت بروز خطا تا ارزیاب در گوشی تلفن همراه متوجه پیام خطا شود
+  useEffect(() => {
+    if (state?.error) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [state?.error]);
 
   // نمرات محور ۱: رابطه تربیتی (سقف ۵۰ - وزن ۱۵٪)
   const [a1_1, setA1_1] = useState(24);
@@ -206,20 +352,130 @@ export default function EvaluationFormClient({
                 </div>
               )}
 
+              {/* اعلان بازیابی پیش‌نویس موقت */}
+              {hasDraft && (
+                <div className="mt-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-amber-600 shrink-0" />
+                    <span className="font-semibold">پیش‌نویس ذخیره‌شده از اطلاعات قبلی در حافظه مرورگر شما موجود است.</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={restoreDraft}
+                      className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                    >
+                      بازیابی اطلاعات
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearDraft}
+                      className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 text-xs transition cursor-pointer"
+                    >
+                      صرف‌نظر
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {state?.error && (
                 <div className="mt-4 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{state.error}</span>
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span className="font-semibold">{state.error}</span>
                 </div>
               )}
             </div>
 
+            {/* شناسه فرد در صورتی که از کادر موجود انتخاب شده باشد */}
+            <input type="hidden" name="teacherId" value={selectedTeacherId || ""} />
+
             {/* ۱. اطلاعات اولیه فرد و جلسه ارزیابی */}
             <div className="space-y-4">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <User className="w-4 h-4 text-indigo-600" />
-                <span>۱. اطلاعات پایه و شناسایی فرد (کادر مدرسه)</span>
-              </h2>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <User className="w-4 h-4 text-indigo-600" />
+                  <span>۱. اطلاعات پایه و شناسایی فرد (کادر مدرسه)</span>
+                </h2>
+                {selectedTeacherId && (
+                  <span className="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-xl">
+                    در حال ارزیابی کادر موجود: {firstName} {lastName}
+                  </span>
+                )}
+              </div>
+
+              {/* امکان انتخاب مستقیم از لیست کادر ثبت‌شده این مدرسه */}
+              {currentSchoolTeachers.length > 0 && (
+                <div className="p-4 rounded-2xl bg-linear-to-r from-slate-50 to-indigo-50/40 border border-indigo-100/90 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-indigo-600" />
+                      <span className="text-xs font-bold text-slate-900">
+                        انتخاب از کادر ثبت‌شده این مدرسه ({currentSchoolTeachers.length} نفر):
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => selectTeacher(null)}
+                        className={`text-xs px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${
+                          !selectedTeacherId
+                            ? "bg-indigo-600 text-white shadow-xs"
+                            : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                        }`}
+                      >
+                        + ثبت فرد جدید
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                    {currentSchoolTeachers.map((t) => {
+                      const isSelected = selectedTeacherId === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => selectTeacher(isSelected ? null : t)}
+                          className={`p-3 rounded-xl border text-right transition flex items-center justify-between cursor-pointer ${
+                            isSelected
+                              ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                              : "bg-white text-slate-800 hover:bg-indigo-50/60 border-slate-200"
+                          }`}
+                        >
+                          <div>
+                            <div className="font-bold text-xs sm:text-sm">
+                              {t.firstName} {t.lastName}
+                            </div>
+                            <div className={`text-[11px] mt-0.5 ${isSelected ? "text-indigo-100" : "text-slate-500"}`}>
+                              {t.roleTitle || "معلم"} • {t.subject}
+                            </div>
+                          </div>
+                          {isSelected ? (
+                            <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                              انتخاب
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {selectedTeacherId && (
+                    <div className="text-[11px] text-indigo-800 bg-indigo-50/80 px-3 py-2 rounded-xl border border-indigo-200 flex items-center justify-between">
+                      <span>مشخصات <strong>{firstName} {lastName}</strong> بارگذاری شد. ارزیابی جدید برای این فرد ثبت می‌گردد.</span>
+                      <button
+                        type="button"
+                        onClick={() => selectTeacher(null)}
+                        className="text-xs font-bold text-rose-600 hover:underline mr-2 cursor-pointer"
+                      >
+                        انصراف و ورود اطلاعات فرد جدید
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* انتخاب نقش فرد */}
@@ -252,6 +508,8 @@ export default function EvaluationFormClient({
                     <input
                       type="text"
                       name="roleTitleCustom"
+                      value={roleTitleCustom}
+                      onChange={(e) => setRoleTitleCustom(e.target.value)}
                       required
                       placeholder="مثال: مسئول کانون، مربی پژوهش..."
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 outline-none transition"
@@ -260,13 +518,16 @@ export default function EvaluationFormClient({
                 ) : (
                   <div></div>
                 )}
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    نام معلم <span className="text-rose-500">*</span>
+                    نام فرد <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="firstName"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
                     required
                     placeholder="مثال: سید محمد"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
@@ -275,11 +536,13 @@ export default function EvaluationFormClient({
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    نام خانوادگی معلم <span className="text-rose-500">*</span>
+                    نام خانوادگی فرد <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="lastName"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                     required
                     placeholder="مثال: حسینی"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
@@ -293,6 +556,8 @@ export default function EvaluationFormClient({
                   <input
                     type="tel"
                     name="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     placeholder="۰۹۱۲۰۰۰۰۰۰۰"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   />
@@ -305,6 +570,8 @@ export default function EvaluationFormClient({
                   <input
                     type="text"
                     name="nationalCode"
+                    value={nationalCode}
+                    onChange={(e) => setNationalCode(e.target.value)}
                     placeholder="۰۰۱۲۳۴۵۶۷۸"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   />
@@ -312,11 +579,13 @@ export default function EvaluationFormClient({
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    رشته / درس تدریس <span className="text-rose-500">*</span>
+                    رشته / درس تدریس یا حوزه فعالیت <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="subject"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
                     required
                     placeholder="مثال: ادبیات، تاریخ، جامعه‌شناسی، فلسفه"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
@@ -325,11 +594,13 @@ export default function EvaluationFormClient({
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    مقطع تدریس <span className="text-rose-500">*</span>
+                    مقطع تدریس یا فعالیت <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="grade"
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
                     required
                     placeholder="مثال: متوسطه اول / متوسطه دوم پایه دهم و یازدهم"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
@@ -338,12 +609,13 @@ export default function EvaluationFormClient({
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    سابقه تدریس (سال)
+                    سابقه فعالیت / تدریس (سال)
                   </label>
                   <input
                     type="number"
                     name="teachingYears"
-                    defaultValue="5"
+                    value={teachingYears}
+                    onChange={(e) => setTeachingYears(parseInt(e.target.value || "0", 10))}
                     min="0"
                     max="50"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
@@ -358,7 +630,10 @@ export default function EvaluationFormClient({
                     schools={schools}
                     name="schoolId"
                     value={selectedSchoolId}
-                    onChange={(id) => setSelectedSchoolId(id)}
+                    onChange={(id) => {
+                      setSelectedSchoolId(id);
+                      setSelectedTeacherId("");
+                    }}
                     noneLabel="-- انتخاب از مدارس ثبت‌شده یا ورود دستی --"
                     placeholder="جستجوی نام یا منطقه مدرسه..."
                   />
@@ -371,6 +646,8 @@ export default function EvaluationFormClient({
                   <input
                     type="text"
                     name="schoolNameManual"
+                    value={schoolNameManual}
+                    onChange={(e) => setSchoolNameManual(e.target.value)}
                     placeholder="مثال: دبیرستان نمونه دولتی رشد - منطقه ۲"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                   />
@@ -1080,22 +1357,41 @@ export default function EvaluationFormClient({
                 <textarea
                   name="finalNotes"
                   rows={3}
+                  value={finalNotes}
+                  onChange={(e) => setFinalNotes(e.target.value)}
                   placeholder="پیشنهاد نقش در شبکه، کارگاه‌های مورد نیاز، لیدری منطقه‌ای..."
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder:text-slate-500 outline-none"
                 ></textarea>
               </div>
 
+              {/* نمایش پیام خطا دقیقاً بالای دکمه ثبت (جهت رویت سریع در گوشی‌های همراه) */}
+              {state?.error && (
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm flex items-center gap-2.5 shadow-xs">
+                  <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
+                  <span className="font-semibold">{state.error}</span>
+                </div>
+              )}
+
               {/* دکمه ثبت */}
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white text-sm font-bold shadow-lg shadow-indigo-600/30 transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                onClick={() => {
+                  clearDraft();
+                }}
+                className="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white text-sm font-bold shadow-lg shadow-indigo-600/30 transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
               >
                 {isPending ? (
-                  <span>در حال ذخیره‌سازی...</span>
+                  <div className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>در حال ذخیره‌سازی و ثبت ارزیابی...</span>
+                  </div>
                 ) : (
                   <>
-                    <CheckCircle2 className="w-4 h-4" />
+                    <CheckCircle2 className="w-5 h-5" />
                     <span>ثبت نهایی و صدور کارنامه معلم</span>
                   </>
                 )}

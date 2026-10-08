@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Compass,
   UserCheck,
+  ClipboardPenLine,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -343,12 +344,13 @@ export default async function EvaluatorSchoolDetailPage({
                 <th className="py-3.5 px-6 text-center">نمره کل وزنی</th>
                 <th className="py-3.5 px-6 text-center">وضعیت همکاری</th>
                 <th className="py-3.5 px-6 text-center">تاریخ ارزیابی</th>
+                <th className="py-3.5 px-6 text-center">عملیات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
               {school.teachers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     تاکنون هیچ فردی از کادر این مدرسه ارزیابی نشده است. با دکمه بالا اولین فرد را ثبت کنید.
                   </td>
                 </tr>
@@ -403,6 +405,17 @@ export default async function EvaluatorSchoolDetailPage({
 
                       <td className="py-4 px-6 text-center text-slate-500 font-mono text-xs">
                         {new Date(t.createdAt).toLocaleDateString("fa-IR")}
+                      </td>
+
+                      <td className="py-4 px-6 text-center">
+                        <Link
+                          href={`/evaluator/evaluate?schoolId=${school.id}&teacherId=${t.id}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition shrink-0"
+                          title="ثبت یا تکرار ارزیابی برای این فرد"
+                        >
+                          <ClipboardPenLine className="w-3.5 h-3.5" />
+                          <span>{latestEval ? "ارزیابی مجدد" : "ثبت ارزیابی"}</span>
+                        </Link>
                       </td>
                     </tr>
                   );

@@ -8,16 +8,27 @@ export const dynamic = "force-dynamic";
 export default async function EvaluatorEvaluatePage({
   searchParams,
 }: {
-  searchParams: Promise<{ schoolId?: string }>;
+  searchParams: Promise<{ schoolId?: string; teacherId?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
   }
 
-  const { schoolId } = await searchParams;
+  const { schoolId, teacherId } = await searchParams;
 
-  // دریافت فقط مدارس تخصیص‌یافته به همین ارزیاب
+  let effectiveSchoolId = schoolId;
+  if (!effectiveSchoolId && teacherId) {
+    const teacher = await prisma.teacher.findUnique({
+      where: { id: teacherId },
+      select: { schoolId: true },
+    });
+    if (teacher?.schoolId) {
+      effectiveSchoolId = teacher.schoolId;
+    }
+  }
+
+  // دریافت فقط مدارس تخصیص‌یافته به همین ارزیاب همراه با کادر معلمان هر مدرسه
   const schools = await prisma.school.findMany({
     where: {
       assignedEvaluatorId: user.id,
@@ -26,6 +37,21 @@ export default async function EvaluatorEvaluatePage({
       id: true,
       name: true,
       district: true,
+      teachers: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          nationalCode: true,
+          roleTitle: true,
+          subject: true,
+          grade: true,
+          teachingYears: true,
+          bio: true,
+        },
+        orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+      },
     },
     orderBy: { name: "asc" },
   });
@@ -34,5 +60,11 @@ export default async function EvaluatorEvaluatePage({
     redirect("/evaluator/schools");
   }
 
-  return <EvaluationFormClient schools={schools} initialSchoolId={schoolId} />;
+  return (
+    <EvaluationFormClient
+      schools={schools}
+      initialSchoolId={effectiveSchoolId}
+      initialTeacherId={teacherId}
+    />
+  );
 }

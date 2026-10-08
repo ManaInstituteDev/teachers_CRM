@@ -7,6 +7,8 @@ import { redirect } from "next/navigation";
 import { CollaborationStatus, FamiliarityLevel } from "@/generated/prisma/client";
 import { calculateAxisQualitative, calculateFinalCollaborationStatus } from "@/lib/scoring";
 
+import { extractCleanNumber } from "@/lib/numberToWords";
+
 export async function submitEvaluationAction(prevState: any, formData: FormData) {
   const user = await getCurrentUser();
   if (!user) {
@@ -19,6 +21,8 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
   const lastName = formData.get("lastName") as string;
   const phone = formData.get("phone") as string;
   const nationalCode = formData.get("nationalCode") as string;
+  const cleanPhone = extractCleanNumber(phone) || null;
+  const cleanNationalCode = extractCleanNumber(nationalCode) || null;
   const teachingYears = parseInt((formData.get("teachingYears") as string) || "0", 10);
   const roleTitleInput = ((formData.get("roleTitle") as string) || "معلم").trim();
   const roleTitleCustom = ((formData.get("roleTitleCustom") as string) || "").trim();
@@ -92,27 +96,91 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
   const finalNotes = formData.get("finalNotes") as string;
 
   try {
-    let activeTeacherId = teacherId;
+    let activeTeacherId = teacherId?.trim() ? teacherId.trim() : null;
 
     if (!activeTeacherId) {
-      // ایجاد فرد جدید (معلم، مشاور، معاون، ...)
-      const newTeacher = await prisma.teacher.create({
-        data: {
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          phone: phone ? phone.trim() : null,
-          nationalCode: nationalCode ? nationalCode.trim() : null,
-          teachingYears,
-          roleTitle: roleTitle || "معلم",
-          subject: subject.trim(),
-          grade: grade.trim(),
-          schoolId: schoolId || null,
-          schoolNameManual: schoolNameManual ? schoolNameManual.trim() : null,
-          collaborationStatus: finalRecommendation,
-          bio: bio ? bio.trim() : null,
-        },
-      });
-      activeTeacherId = newTeacher.id;
+      // بررسی وجود قبلی معلم بر اساس شماره تماس یا کد ملی
+      let existingTeacher = null;
+
+      if (cleanPhone) {
+        existingTeacher = await prisma.teacher.findFirst({
+          where: {
+            OR: [
+              { phone: cleanPhone },
+              { phone: phone.trim() },
+            ],
+          },
+        });
+      }
+
+      if (!existingTeacher && cleanNationalCode) {
+        existingTeacher = await prisma.teacher.findFirst({
+          where: {
+            OR: [
+              { nationalCode: cleanNationalCode },
+              { nationalCode: nationalCode.trim() },
+            ],
+          },
+        });
+      }
+
+      if (existingTeacher) {
+        // اگر شماره تلفن متعلق به معلم قبلی باشد، ارزیابی به همان فرد وصل می‌شود.
+        // جهت جلوگیری از ثبت اشتباه شماره برای فرد دیگر، بررسی انطباق نام انجام می‌شود:
+        const isNameMismatch =
+          Boolean(firstName?.trim()) &&
+          Boolean(lastName?.trim()) &&
+          Boolean(existingTeacher.firstName?.trim()) &&
+          Boolean(existingTeacher.lastName?.trim()) &&
+          !existingTeacher.firstName.includes(firstName.trim()) &&
+          !firstName.trim().includes(existingTeacher.firstName) &&
+          !existingTeacher.lastName.includes(lastName.trim()) &&
+          !lastName.trim().includes(existingTeacher.lastName);
+
+        if (isNameMismatch) {
+          return {
+            error: `شماره همراه وارد شده (${cleanPhone}) قبلاً برای معلم دیگری («${existingTeacher.firstName} ${existingTeacher.lastName}») در سامانه ثبت شده است. لطفاً شماره را بررسی فرمایید یا فرد را از کادر مدرسه انتخاب کنید.`,
+          };
+        }
+
+        activeTeacherId = existingTeacher.id;
+
+        // به‌روزرسانی اطلاعات معلم موجود
+        await prisma.teacher.update({
+          where: { id: activeTeacherId },
+          data: {
+            collaborationStatus: finalRecommendation,
+            ...(roleTitle ? { roleTitle } : {}),
+            ...(subject?.trim() ? { subject: subject.trim() } : {}),
+            ...(grade?.trim() ? { grade: grade.trim() } : {}),
+            ...(teachingYears !== undefined && !isNaN(teachingYears) ? { teachingYears } : {}),
+            ...(schoolId ? { schoolId } : {}),
+            ...(schoolNameManual?.trim() ? { schoolNameManual: schoolNameManual.trim() } : {}),
+            ...(bio?.trim() ? { bio: bio.trim() } : {}),
+            ...(cleanPhone ? { phone: cleanPhone } : {}),
+            ...(cleanNationalCode ? { nationalCode: cleanNationalCode } : {}),
+          },
+        });
+      } else {
+        // ایجاد فرد جدید در سامانه
+        const newTeacher = await prisma.teacher.create({
+          data: {
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            phone: cleanPhone,
+            nationalCode: cleanNationalCode,
+            teachingYears,
+            roleTitle: roleTitle || "معلم",
+            subject: subject.trim(),
+            grade: grade.trim(),
+            schoolId: schoolId || null,
+            schoolNameManual: schoolNameManual ? schoolNameManual.trim() : null,
+            collaborationStatus: finalRecommendation,
+            bio: bio?.trim() || null,
+          },
+        });
+        activeTeacherId = newTeacher.id;
+      }
     } else {
       // به‌روزرسانی وضعیت همکاری و نقش فرد موجود
       await prisma.teacher.update({
@@ -120,7 +188,12 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
         data: {
           collaborationStatus: finalRecommendation,
           ...(roleTitle ? { roleTitle } : {}),
-          ...(bio ? { bio: bio.trim() } : {}),
+          ...(bio?.trim() ? { bio: bio.trim() } : {}),
+          ...(subject?.trim() ? { subject: subject.trim() } : {}),
+          ...(grade?.trim() ? { grade: grade.trim() } : {}),
+          ...(teachingYears !== undefined && !isNaN(teachingYears) ? { teachingYears } : {}),
+          ...(schoolId ? { schoolId } : {}),
+          ...(schoolNameManual?.trim() ? { schoolNameManual: schoolNameManual.trim() } : {}),
         },
       });
     }
@@ -189,6 +262,15 @@ export async function submitEvaluationAction(prevState: any, formData: FormData)
     if (err?.digest?.startsWith("NEXT_REDIRECT")) {
       throw err;
     }
-    return { error: "خطا در ثبت ارزیابی: " + (err.message || "لطفاً ورودی‌ها را بررسی کنید.") };
+    console.error("Evaluation submission error:", err);
+    let errorMessage = "خطا در ثبت ارزیابی. لطفاً ورودی‌ها را بررسی کنید.";
+    if (err.message?.includes("teachers_phone_key")) {
+      errorMessage = "شماره همراه وارد شده قبلاً برای یک معلم در سامانه ثبت شده است.";
+    } else if (err.message?.includes("teachers_nationalCode_key")) {
+      errorMessage = "کد ملی وارد شده قبلاً در سامانه ثبت شده است.";
+    } else if (err.message) {
+      errorMessage = `خطا در ثبت ارزیابی: ${err.message}`;
+    }
+    return { error: errorMessage };
   }
 }
